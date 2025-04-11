@@ -1,4 +1,4 @@
-// /components/Generator.js import { useEffect } from "react"; import Head from "next/head";
+import { useEffect } from "react"; import Head from "next/head";
 
 export default function Generator() { useEffect(() => { window.Module = { isReady: false, locateFile: (path) => path, onRuntimeInitialized: () => { Module.isReady = true; document.getElementById("generateBtn").disabled = false; log("Модуль Argon2 загружен", true); } }; const script = document.createElement("script"); script.src = "/argon2.js"; document.body.appendChild(script); }, []);
 
