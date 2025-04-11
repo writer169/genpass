@@ -191,6 +191,7 @@ function stringToBytes(str) {
 
 function getSettings() {
   return {
+    service: document.getElementById("service").value, // Добавляем сервис в настройки
     account: document.getElementById("account").value,
     device: document.getElementById("device").value,
     version: document.getElementById("version").value,
@@ -203,6 +204,10 @@ function getSettings() {
 }
 
 function applySettings(obj) {
+  // Добавляем применение сервиса, если есть
+  if (obj.service) {
+    document.getElementById("service").value = obj.service;
+  }
   document.getElementById("account").value = obj.account || "default";
   document.getElementById("device").value = obj.device || "default";
   document.getElementById("version").value = obj.version || "00";
