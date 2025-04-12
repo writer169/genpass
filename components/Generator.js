@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import argon2 from '../public/argon2.js';
-import styles from '../public/styles.css';
 
 export default function Generator() {
   const [entries, setEntries] = useState([]);
