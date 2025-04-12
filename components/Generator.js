@@ -1,15 +1,55 @@
 import { useEffect, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import CryptoJS from "crypto-js"; // Keep if needed elsewhere, otherwise remove
+import CryptoJS from "crypto-js";
 
 export default function Generator() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const router = useRouter(); // Keep if needed elsewhere, otherwise remove
+  const [saveName, setSaveName] = useState("");
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  // Добавляем новое состояние для показа/скрытия пароля
+  const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    if (window.Module?.isReady) {
+  if (window.Module?.isReady) {
+    console.log("Argon уже инициализирован");
+    setIsLoading(false);
+
+    const savedSettings = localStorage.getItem("passwordSettings");
+    if (savedSettings) {
+      try {
+        const settings = JSON.parse(savedSettings);
+        applySettings(settings);
+        localStorage.removeItem("passwordSettings");
+        log("Настройки успешно применены", true);
+      } catch (e) {
+        console.error("Ошибка при применении настроек:", e);
+        log("Ошибка при применении настроек");
+      }
+    }
+
+    return;
+  }
+
+  setIsLoading(true);
+  const script = document.createElement("script");
+  script.src = "/argon2.js";
+  script.async = true;
+
+  script.onload = () => {
+    if (!window.Module) {
+      console.error("window.Module не определён");
+      log("Ошибка загрузки модуля Argon2");
+      setIsLoading(false);
+      return;
+    }
+
+    window.Module.onRuntimeInitialized = () => {
+      console.log("Argon2 готов");
+      window.Module.isReady = true;
       setIsLoading(false);
 
       const savedSettings = localStorage.getItem("passwordSettings");
@@ -24,66 +64,171 @@ export default function Generator() {
           log("Ошибка при применении настроек");
         }
       }
+    };
+  };
 
+  script.onerror = () => {
+    console.error("Ошибка загрузки скрипта argon2.js");
+    log("Ошибка загрузки скрипта");
+    setIsLoading(false);
+  };
+
+  document.body.appendChild(script);
+}, []);
+
+  // Добавляем функцию для сброса настроек
+  const resetSettings = () => {
+    document.getElementById("service").value = "";
+    document.getElementById("account").value = "default";
+    document.getElementById("device").value = "default"; 
+    document.getElementById("version").value = "00";
+    document.getElementById("length").value = "16";
+    document.getElementById("lowercase").checked = true;
+    document.getElementById("uppercase").checked = true;
+    document.getElementById("digits").checked = true;
+    document.getElementById("symbols").checked = true;
+    document.getElementById("master").value = "";
+    document.getElementById("result").value = "";
+  };
+
+  // Модифицируем функцию saveSettings для автоматического именования
+  const saveSettings = async () => {
+    const master = document.getElementById("master").value.trim();
+    if (!master) {
+      alert("Пожалуйста, введите мастер-пароль для шифрования");
       return;
     }
-
-    setIsLoading(true);
-    const script = document.createElement("script");
-    script.src = "/argon2.js";
-    script.async = true;
-
-    script.onload = () => {
-      if (!window.Module) {
-        console.error("window.Module не определён");
-        log("Ошибка загрузки модуля Argon2");
-        setIsLoading(false);
-        return;
-      }
-
-      window.Module.onRuntimeInitialized = () => {
-        console.log("Argon2 готов");
-        window.Module.isReady = true;
-        setIsLoading(false);
-
-        const savedSettings = localStorage.getItem("passwordSettings");
-        if (savedSettings) {
-          try {
-            const settings = JSON.parse(savedSettings);
-            applySettings(settings);
-            localStorage.removeItem("passwordSettings");
-            log("Настройки успешно применены", true);
-          } catch (e) {
-            console.error("Ошибка при применении настроек:", e);
-            log("Ошибка при применении настроек");
+    
+    // Получаем настройки для сохранения
+    const settings = getSettings();
+    
+    // Формируем имя на основе настроек
+    let nameComponents = [];
+    
+    // Добавляем сервис (обязательно)
+    if (!settings.service.trim()) {
+      alert("Пожалуйста, введите название сервиса");
+      return;
+    }
+    nameComponents.push(settings.service);
+    
+    // Добавляем аккаунт, если он не 'default'
+    if (settings.account !== 'default') {
+      nameComponents.push(settings.account);
+    }
+    
+    // Добавляем устройство, если оно не 'default'
+    if (settings.device !== 'default') {
+      nameComponents.push(settings.device);
+    }
+    
+    // Добавляем версию, если она не '00'
+    if (settings.version !== '00') {
+      nameComponents.push(`v${settings.version}`);
+    }
+    
+    let saveName = nameComponents.join(' - ');
+    
+    try {
+      // Проверяем, существует ли запись с таким именем
+      const response = await fetch(`/api/entries?name=${encodeURIComponent(saveName)}`);
+      const data = await response.json();
+      
+      if (data.exists) {
+        // Добавляем суффикс к имени
+        let counter = 1;
+        let newName = `${saveName} (${counter})`;
+        
+        // Проверяем, существует ли запись с новым именем
+        while (true) {
+          const checkResponse = await fetch(`/api/entries?name=${encodeURIComponent(newName)}`);
+          const checkData = await checkResponse.json();
+          
+          if (!checkData.exists) {
+            saveName = newName;
+            break;
           }
+          
+          counter++;
+          newName = `${saveName} (${counter})`;
         }
-      };
-    };
-
-    script.onerror = () => {
-      console.error("Ошибка загрузки скрипта argon2.js");
-      log("Ошибка загрузки скрипта");
-      setIsLoading(false);
-    };
-
-    document.body.appendChild(script);
-  }, []);
-
+      }
+      
+      // Создаем соль на основе имени (можно изменить на более сложную схему)
+      const salt = saveName;
+      
+      // Генерируем ключ из мастер-пароля
+      const key = CryptoJS.PBKDF2(master, salt, {
+        keySize: 256 / 32,
+        iterations: 1000
+      });
+      
+      // Шифруем настройки
+      const encryptedData = CryptoJS.AES.encrypt(
+        JSON.stringify(settings), 
+        key.toString()
+      ).toString();
+      
+      // Отправляем на сервер
+      const saveResponse = await fetch("/api/entries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: saveName,
+          encryptedData: encryptedData
+        })
+      });
+      
+      const saveData = await saveResponse.json();
+      
+      if (saveData.success) {
+        log(`Настройки сохранены как "${saveName}"`, true);
+        // Перенаправляем на главную страницу через 2 секунды
+        setTimeout(() => {
+          router.push("/");
+        }, 2000);
+      } else {
+        throw new Error(saveData.error || "Не удалось сохранить настройки");
+      }
+    } catch (err) {
+      console.error("Error saving settings:", err);
+      alert(`Ошибка при сохранении: ${err.message}`);
+    }
+  };
 
   return (
     <>
       <Head>
-        <title>Генератор паролей (Argon2)</title>
+        <title>Редактор пароля</title>
         <link rel="stylesheet" href="/styles.css" />
       </Head>
       <div className="container">
         <div className="card">
-          <h1>Генератор паролей</h1>
+          <div className="header">
+            <button 
+              className="back-btn" 
+              onClick={() => router.push("/")}
+            >
+              ← Назад
+            </button>
+            <h1>Редактор пароля</h1>
+          </div>
 
           <div className="form-group">
             <label htmlFor="master">Мастер-фраза</label>
-            <input type="password" id="master" placeholder="Введите секретную фразу" />
+            <div className="password-input-container">
+              <input 
+                type={showPassword ? "text" : "password"} 
+                id="master" 
+                placeholder="Введите секретную фразу" 
+              />
+              <button 
+                className="toggle-password-btn" 
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? "👁️" : "👁️‍🗨️"}
+              </button>
+            </div>
           </div>
 
           <div className="form-group">
@@ -140,37 +285,47 @@ export default function Generator() {
             </div>
           </div>
 
-          <button
-            className="generate"
-            id="generateBtn"
-            onClick={generatePassword}
-            disabled={isLoading}
-          >
-            СГЕНЕРИРОВАТЬ ПАРОЛЬ
-          </button>
+          <div className="button-row">
+            <button 
+              className="reset-btn" 
+              onClick={resetSettings}
+            >
+              Сбросить
+            </button>
+            <button 
+              className="generate" 
+              id="generateBtn" 
+              onClick={generatePassword} 
+              disabled={isLoading}
+            >
+              СГЕНЕРИРОВАТЬ ПАРОЛЬ
+            </button>
+          </div>
 
           <div className="result-container">
             <input type="text" id="result" readOnly placeholder="Пароль будет здесь" />
             <button className="copy-btn" onClick={() => copyToClipboard('result')}>⧉</button>
           </div>
-
-          {/* Button group removed */}
-          {/* <div className="button-group"> ... </div> */}
+          
+          <div className="button-group">
+            <button 
+              className="save-btn" 
+              onClick={saveSettings}
+            >
+              Сохранить
+            </button>
+          </div>
         </div>
-
 
         <div className="status" id="status">
           {error ? error : isLoading ? "Инициализация..." : "Готово к работе"}
         </div>
-
-        {/* Save Modal removed */}
-        {/* {showSaveModal && ( ... )} */}
       </div>
     </>
   );
 }
 
-
+// Вспомогательные функции, которые мы выносим за пределы компонента
 function log(msg, isSuccess = false) {
   const statusEl = document.getElementById('status');
   if (statusEl) {
@@ -179,15 +334,11 @@ function log(msg, isSuccess = false) {
 
     if (isSuccess) {
       setTimeout(() => {
-        if (statusEl.className === 'status success') { // Check if still success
-             statusEl.textContent = "Готово к работе"; // Reset text or leave as is
-             statusEl.className = 'status';
-        }
+        statusEl.className = 'status';
       }, 2000);
     }
   }
 }
-
 
 function getCharset() {
   let chars = '';
@@ -206,10 +357,9 @@ function stringToBytes(str) {
   return new TextEncoder().encode(str);
 }
 
-
 function getSettings() {
   return {
-    service: document.getElementById("service").value,
+    service: document.getElementById("service").value, 
     account: document.getElementById("account").value,
     device: document.getElementById("device").value,
     version: document.getElementById("version").value,
@@ -220,7 +370,6 @@ function getSettings() {
     symbols: document.getElementById("symbols").checked
   };
 }
-
 
 function applySettings(obj) {
   if (obj.service) {
@@ -236,31 +385,21 @@ function applySettings(obj) {
   document.getElementById("symbols").checked = obj.symbols ?? true;
 }
 
-
 function copySettings() {
   const settings = getSettings();
   const encoded = btoa(JSON.stringify(settings));
-  // Assuming there's an input with id="settings" somewhere else or this function is now unused
-  const settingsInput = document.getElementById("settings");
   navigator.clipboard.writeText(encoded).then(() => {
-    if (settingsInput) settingsInput.value = encoded;
+    document.getElementById("settings").value = encoded;
     log("Настройки скопированы", true);
   }).catch(() => {
-    if (settingsInput) settingsInput.value = encoded;
+    document.getElementById("settings").value = encoded;
     log("Скопируйте настройки вручную");
   });
 }
 
-
 function pasteSettings() {
-    // Assuming there's an input with id="settings" somewhere else or this function is now unused
-    const settingsInput = document.getElementById("settings");
-    if (!settingsInput) {
-        log("Элемент для вставки настроек не найден");
-        return;
-    }
   try {
-    const text = settingsInput.value.trim();
+    const text = document.getElementById("settings").value.trim();
     const decoded = JSON.parse(atob(text));
     applySettings(decoded);
     log("Настройки успешно применены", true);
@@ -269,29 +408,12 @@ function pasteSettings() {
   }
 }
 
-
 function copyToClipboard(id) {
   const el = document.getElementById(id);
-   if (!el || !el.value) {
-       log("Нечего копировать");
-       return;
-   }
   el.select();
-  try {
-    document.execCommand("copy");
-    log("Пароль скопирован в буфер обмена", true);
-  } catch (err) {
-    log("Ошибка копирования");
-    console.error("Copy error:", err);
-  }
-  // Deselect text after copying
-  if (window.getSelection) {
-     window.getSelection().removeAllRanges();
-  } else if (document.selection) {
-     document.selection.empty();
-  }
+  document.execCommand("copy");
+  log("Пароль скопирован в буфер обмена", true);
 }
-
 
 function generatePassword() {
   if (!window.Module || !window.Module.isReady) {
@@ -314,11 +436,6 @@ function generatePassword() {
   const charset = getCharset();
   const length = parseInt(document.getElementById("length").value) || 16;
 
-  if (length < 6 || length > 64) {
-     alert("Длина пароля должна быть от 6 до 64 символов");
-     return;
-  }
-
   if (charset.length < 5) {
     alert("Выберите хотя бы один тип символов");
     return;
@@ -332,38 +449,23 @@ function generatePassword() {
     let saltBytes = stringToBytes(salt);
     let pwdPtr = mod._malloc(pwdBytes.length);
     let saltPtr = mod._malloc(saltBytes.length);
-    let hashPtr = mod._malloc(32); // Argon2 output size = 32 bytes
-    let encodedPtr = mod._malloc(512); // Buffer for encoded hash string (not strictly needed for password derivation)
+    let hashPtr = mod._malloc(32);
+    let encodedPtr = mod._malloc(512);
 
     new Uint8Array(mod.HEAPU8.buffer, pwdPtr, pwdBytes.length).set(pwdBytes);
     new Uint8Array(mod.HEAPU8.buffer, saltPtr, saltBytes.length).set(saltBytes);
 
     const result = mod._argon2_hash(
-      3, // t_cost (iterations)
-      65536, // m_cost (memory in KiB)
-      1, // parallelism
+      3, 65536, 1,
       pwdPtr, pwdBytes.length,
       saltPtr, saltBytes.length,
-      hashPtr, 32, // Raw hash output
-      encodedPtr, 512, // Encoded output buffer (optional usage)
-      2, // Argon2d=0, Argon2i=1, Argon2id=2
-      0x13 // Version 1.3
+      hashPtr, 32,
+      encodedPtr, 512,
+      2, 0x13
     );
 
     if (result !== 0) {
-       // Try to get error message if possible (depends on argon2.js build)
-       let errorMsg = "Код ошибки: " + result;
-       if (mod.ccall) { // Check if ccall is available
-           try {
-             errorMsg = mod.ccall('argon2_error_message', 'string', ['number'], [result]);
-           } catch(e) { console.error("Could not get Argon2 error message", e)}
-       }
-      log("Ошибка генерации: " + errorMsg);
-      // Free memory even on error
-      mod._free(pwdPtr);
-      mod._free(saltPtr);
-      mod._free(hashPtr);
-      mod._free(encodedPtr);
+      log("Ошибка генерации: " + result);
       return;
     }
 
@@ -379,10 +481,5 @@ function generatePassword() {
   } catch (e) {
     console.error("Error during password generation:", e);
     log("Ошибка при генерации пароля: " + e.message);
-     // Ensure memory is freed in case of JS error after malloc
-     if (window.Module?._free) {
-         // Attempt to free if pointers were allocated, might need try-catch around each _free
-         // It's safer if the pointers are managed within the try block scope
-     }
   }
 }
