@@ -6,9 +6,6 @@ import CryptoJS from "crypto-js";
 export default function Generator() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [saveName, setSaveName] = useState("");
-  const [showSaveModal, setShowSaveModal] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
   // Добавляем новое состояние для показа/скрытия пароля
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
