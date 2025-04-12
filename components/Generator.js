@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
 import Head from "next/head";
+import { useRouter } from "next/router";
+import CryptoJS from "crypto-js";
 
 export default function Generator() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [saveName, setSaveName] = useState("");
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     // Создаем глобальный объект Module для Argon2
@@ -47,12 +53,83 @@ export default function Generator() {
       }
     }, 5000);
 
+    // Проверяем, есть ли сохраненные настройки в localStorage
+    const savedSettings = localStorage.getItem("passwordSettings");
+    if (savedSettings) {
+      try {
+        const settings = JSON.parse(savedSettings);
+        applySettings(settings);
+        localStorage.removeItem("passwordSettings"); // Очищаем после применения
+      } catch (e) {
+        console.error("Error applying saved settings:", e);
+      }
+    }
+
     return () => {
       clearTimeout(timeout);
     };
   }, []);
 
-  // Ваш существующий код JSX и функции
+  const saveSettings = async () => {
+    if (!saveName.trim()) {
+      alert("Пожалуйста, введите название для сохраняемого пароля");
+      return;
+    }
+    
+    const master = document.getElementById("master").value.trim();
+    if (!master) {
+      alert("Пожалуйста, введите мастер-пароль для шифрования");
+      return;
+    }
+    
+    try {
+      // Получаем настройки для сохранения
+      const settings = getSettings();
+      
+      // Создаем соль на основе имени (можно изменить на более сложную схему)
+      const salt = saveName;
+      
+      // Генерируем ключ из мастер-пароля
+      const key = CryptoJS.PBKDF2(master, salt, {
+        keySize: 256 / 32,
+        iterations: 1000
+      });
+      
+      // Шифруем настройки
+      const encryptedData = CryptoJS.AES.encrypt(
+        JSON.stringify(settings), 
+        key.toString()
+      ).toString();
+      
+      // Отправляем на сервер
+      const response = await fetch("/api/entries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: saveName,
+          encryptedData: encryptedData
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setSaveSuccess(true);
+        // Скрываем модальное окно через 2 секунды
+        setTimeout(() => {
+          setShowSaveModal(false);
+          setSaveSuccess(false);
+          setSaveName("");
+        }, 2000);
+      } else {
+        throw new Error(data.error || "Не удалось сохранить настройки");
+      }
+    } catch (err) {
+      console.error("Error saving settings:", err);
+      alert(`Ошибка при сохранении: ${err.message}`);
+    }
+  };
+
   return (
     <>
       <Head>
@@ -135,6 +212,21 @@ export default function Generator() {
             <input type="text" id="result" readOnly placeholder="Пароль будет здесь" />
             <button className="copy-btn" onClick={() => copyToClipboard('result')}>⧉</button>
           </div>
+          
+          <div className="button-group">
+            <button 
+              className="save-btn" 
+              onClick={() => setShowSaveModal(true)}
+            >
+              Сохранить настройки
+            </button>
+            <button 
+              className="view-saved-btn"
+              onClick={() => router.push("/saved")}
+            >
+              Сохраненные пароли
+            </button>
+          </div>
         </div>
 
         <div className="card">
@@ -152,6 +244,47 @@ export default function Generator() {
         <div className="status" id="status">
           {error ? error : isLoading ? "Инициализация..." : "Готово к работе"}
         </div>
+        
+        {showSaveModal && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <h2>{saveSuccess ? "Успешно сохранено!" : "Сохранить настройки"}</h2>
+              
+              {!saveSuccess && (
+                <>
+                  <div className="form-group">
+                    <label htmlFor="saveName">Название:</label>
+                    <input 
+                      type="text" 
+                      id="saveName"
+                      value={saveName}
+                      onChange={(e) => setSaveName(e.target.value)}
+                      placeholder="Например: Google Аккаунт"
+                    />
+                  </div>
+                  
+                  <div className="modal-actions">
+                    <button 
+                      className="cancel-btn" 
+                      onClick={() => {
+                        setShowSaveModal(false);
+                        setSaveName("");
+                      }}
+                    >
+                      Отмена
+                    </button>
+                    <button 
+                      className="confirm-btn"
+                      onClick={saveSettings}
+                    >
+                      Сохранить
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
@@ -191,7 +324,7 @@ function stringToBytes(str) {
 
 function getSettings() {
   return {
-    service: document.getElementById("service").value, // Добавляем сервис в настройки
+    service: document.getElementById("service").value, 
     account: document.getElementById("account").value,
     device: document.getElementById("device").value,
     version: document.getElementById("version").value,
@@ -204,7 +337,6 @@ function getSettings() {
 }
 
 function applySettings(obj) {
-  // Добавляем применение сервиса, если есть
   if (obj.service) {
     document.getElementById("service").value = obj.service;
   }
