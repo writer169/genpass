@@ -1,29 +1,7 @@
-// --- START OF FILE SavedPasswords.js ---
-
-import { useState, useEffect, useMemo } from "react"; // Added useMemo
+import { useState, useEffect } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import CryptoJS from "crypto-js";
-// Assuming you have a password generation utility
-// import { generatePassword } from '../utils/passwordGenerator';
-
-// Placeholder password generation function - REPLACE with your actual logic
-const generatePasswordFromSettings = (settings) => {
-  let charset = "";
-  if (settings.useUppercase) charset += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  if (settings.useLowercase) charset += "abcdefghijklmnopqrstuvwxyz";
-  if (settings.useNumbers) charset += "0123456789";
-  if (settings.useSymbols) charset += "!@#$%^&*()_+~`|}{[]:;?><,./-=";
-  if (!charset) charset = "abcdefghijklmnopqrstuvwxyz"; // Fallback
-
-  let password = "";
-  const length = settings.length || 16; // Use saved length or default
-  for (let i = 0; i < length; i++) {
-    password += charset.charAt(Math.floor(Math.random() * charset.length));
-  }
-  return password;
-};
-
 
 export default function SavedPasswords() {
   const [entries, setEntries] = useState([]);
@@ -31,176 +9,220 @@ export default function SavedPasswords() {
   const [error, setError] = useState(null);
   const [masterPassword, setMasterPassword] = useState("");
   const [selectedEntry, setSelectedEntry] = useState(null);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const router = useRouter();
-
-  // --- New State Variables ---
+  const [showPassword, setShowPassword] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // For modal password visibility
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showGeneratedPasswordModal, setShowGeneratedPasswordModal] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState("");
-  // --- End New State Variables ---
+  const router = useRouter();
 
   useEffect(() => {
     fetchEntries();
   }, []);
 
   const fetchEntries = async () => {
-    setLoading(true);
-    setError(null); // Reset error on fetch
     try {
       const response = await fetch("/api/entries");
-      if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-      }
       const data = await response.json();
-      // Assuming API returns { entries: [...] }
-      // Ensure entries is always an array
-      setEntries(Array.isArray(data.entries) ? data.entries : []);
+      
+      if (data.entries) {
+        setEntries(data.entries);
+      }
     } catch (err) {
-      setError("Ошибка при загрузке сохраненных паролей.");
+      setError("Ошибка при загрузке сохраненных паролей");
       console.error("Error fetching entries:", err);
-      setEntries([]); // Ensure entries is an empty array on error
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (entryId) => {
-    if (confirm("Вы уверены, что хотите удалить эту запись?")) {
-        setError(null);
+    if (confirm("Вы уверены, что хотите удалить этот пароль?")) {
       try {
         const response = await fetch(`/api/entries?id=${entryId}`, {
           method: "DELETE",
         });
-
+        
         if (response.ok) {
           // Обновляем список после удаления
-          // setEntries(prevEntries => prevEntries.filter(entry => entry._id !== entryId)); // Faster UI update
-          fetchEntries(); // Or refetch
+          fetchEntries();
         } else {
-          const errorData = await response.json();
-          setError(errorData.message || "Ошибка при удалении записи.");
+          setError("Ошибка при удалении пароля");
         }
       } catch (err) {
-        setError("Ошибка сети при удалении записи.");
+        setError("Ошибка при удалении пароля");
         console.error("Error deleting entry:", err);
       }
     }
   };
 
-  // Called by both "Пароль" and "Редактировать" buttons to open the master password modal
   const handleUseEntry = (entry) => {
     setSelectedEntry(entry);
     setShowPasswordModal(true);
-    // Reset potentially leftover state
-    setMasterPassword("");
-    setShowPassword(false); // Reset password visibility toggle
-    setGeneratedPassword(""); // Reset previous generated password
   };
 
-  // Decrypts data, then either shows generated password or navigates to editor
-  const decryptAndUse = async (isEditing = false) => {
+  // Добавьте функцию для генерации пароля
+  const generatePasswordForEntry = async (entry) => {
+    setSelectedEntry(entry);
+    setShowPasswordModal(true);
+  };
+
+  // Модифицируем функцию decryptAndUse
+  const decryptAndUse = async (redirect = true) => {
     if (!masterPassword) {
       alert("Пожалуйста, введите мастер-пароль");
       return;
     }
 
-    if (!selectedEntry) {
-        console.error("No entry selected for decryption.");
-        alert("Произошла ошибка: запись не выбрана.");
-        return;
-    }
-
     try {
-      // Use entry name as salt (ensure consistency with saving logic)
       const salt = selectedEntry.name;
       const key = CryptoJS.PBKDF2(masterPassword, salt, {
         keySize: 256 / 32,
-        iterations: 1000 // Make sure this matches the iterations used during encryption
+        iterations: 1000
       });
-
+      
       const bytes = CryptoJS.AES.decrypt(selectedEntry.encryptedData, key.toString());
-      const decryptedString = bytes.toString(CryptoJS.enc.Utf8);
-
-      // Check if decryption produced a valid string
-      if (!decryptedString) {
-          throw new Error("Decryption failed or resulted in empty data. Check master password or data integrity.");
-      }
-
-      const decryptedSettings = JSON.parse(decryptedString);
-
-      // Close the master password modal FIRST
-      setShowPasswordModal(false);
-      setMasterPassword("");
-      setShowPassword(false); // Reset visibility toggle
-
-      if (isEditing) {
-        // Store settings and essential info for the editor page
-        localStorage.setItem("passwordSettingsToEdit", JSON.stringify({
-            ...decryptedSettings,
-            id: selectedEntry._id, // Pass ID for saving update
-            name: selectedEntry.name, // Pass current name
-            service: selectedEntry.service // Pass current service
-        }));
-        // Redirect to editor page
+      const decryptedSettings = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+      
+      if (redirect) {
+        // Переход на редактор
+        localStorage.setItem("passwordSettings", JSON.stringify(decryptedSettings));
         router.push("/editor");
       } else {
-        // Generate password based on decrypted settings
-        const newPassword = generatePasswordFromSettings(decryptedSettings); // Use the generation function
-        setGeneratedPassword(newPassword);
-        setShowGeneratedPasswordModal(true); // Show the generated password modal
-      }
+        // Генерация пароля без перехода
+        if (!window.Module || !window.Module.isReady) {
+          // Загрузка Argon2 если еще не загружен
+          await loadArgon2Module();
+        }
+        
+        const master = masterPassword;
+        const service = decryptedSettings.service;
+        const account = decryptedSettings.account || "default";
+        const device = decryptedSettings.device || "default";
+        const version = decryptedSettings.version || "00";
+        
+        const salt = service + ":" + account + ":" + device + ":" + version;
+        
+        // Функции для работы с Argon2 (скопированы из Generator.js)
+        const getCharset = () => {
+          let chars = '';
+          if (decryptedSettings.lowercase) chars += 'abcdefghijkmnpqrstuvwxyz';
+          if (decryptedSettings.uppercase) chars += 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+          if (decryptedSettings.digits) chars += '23456789';
+          if (decryptedSettings.symbols) chars += '!@#$%&';
+          return chars;
+        };
+        
+        const stringToBytes = (str) => new TextEncoder().encode(str);
+        const hashToPassword = (hash, length, charset) => 
+          Array.from(hash).slice(0, length).map(b => charset[b % charset.length]).join('');
+        
+        const charset = getCharset();
+        const length = parseInt(decryptedSettings.length) || 16;
+        
+        let mod = window.Module;
+        let pwdBytes = stringToBytes(master);
+        let saltBytes = stringToBytes(salt);
+        let pwdPtr = mod._malloc(pwdBytes.length);
+        let saltPtr = mod._malloc(saltBytes.length);
+        let hashPtr = mod._malloc(32);
+        let encodedPtr = mod._malloc(512);
 
-    } catch (err) {
-      // Provide more specific feedback if possible
-      if (err instanceof SyntaxError || (err.message && err.message.includes("Malformed UTF-8")) || (err.message && err.message.includes("Decryption failed"))) {
-          alert("Неверный мастер-пароль или данные повреждены.");
-      } else {
-          alert("Ошибка при расшифровке: " + err.message);
+        new Uint8Array(mod.HEAPU8.buffer, pwdPtr, pwdBytes.length).set(pwdBytes);
+        new Uint8Array(mod.HEAPU8.buffer, saltPtr, saltBytes.length).set(saltBytes);
+
+        const result = mod._argon2_hash(
+          3, 65536, 1,
+          pwdPtr, pwdBytes.length,
+          saltPtr, saltBytes.length,
+          hashPtr, 32,
+          encodedPtr, 512,
+          2, 0x13
+        );
+
+        if (result !== 0) {
+          throw new Error("Ошибка генерации: " + result);
+        }
+
+        const hash = new Uint8Array(mod.HEAPU8.buffer, hashPtr, 32);
+        const password = hashToPassword(hash, length, charset);
+        
+        // Отображаем результат
+        setGeneratedPassword(password);
+        setShowGeneratedPasswordModal(true);
+        setShowPasswordModal(false);
+        
+        // Освобождаем память
+        mod._free(pwdPtr);
+        mod._free(saltPtr);
+        mod._free(hashPtr);
+        mod._free(encodedPtr);
       }
-      console.error("Error decrypting/using entry:", err);
-      // Don't close modal on error, allow user to retry
-      setMasterPassword(""); // Clear password field on error for retry
+      
+      // В любом случае очищаем пароль
+      setMasterPassword("");
+    } catch (err) {
+      alert("Неверный мастер-пароль или поврежденные данные");
+      console.error("Error decrypting:", err);
     }
   };
 
-  // --- Filtering and Grouping Logic ---
-  const filteredAndGroupedEntries = useMemo(() => {
-    const filtered = entries.filter(entry => {
-        const searchTermLower = searchTerm.toLowerCase();
-        const nameMatch = entry.name?.toLowerCase().includes(searchTermLower);
-        const serviceMatch = entry.service?.toLowerCase().includes(searchTermLower);
-        return nameMatch || serviceMatch;
-    });
-
-    const groups = filtered.reduce((acc, entry) => {
-      // Use a default category if service is missing or empty
-      const serviceKey = entry.service || "Без категории";
-      if (!acc[serviceKey]) {
-        acc[serviceKey] = [];
+  // Функция для загрузки модуля Argon2
+  const loadArgon2Module = () => {
+    return new Promise((resolve, reject) => {
+      if (window.Module?.isReady) {
+        resolve();
+        return;
       }
-      acc[serviceKey].push(entry);
-      return acc;
-    }, {});
+      
+      const script = document.createElement("script");
+      script.src = "/argon2.js";
+      script.async = true;
 
-    // Sort groups alphabetically by service name
-    const sortedGroupKeys = Object.keys(groups).sort((a, b) => a.localeCompare(b));
-    const sortedGroups = {};
-    sortedGroupKeys.forEach(key => {
-        // Sort entries within each group alphabetically by name
-      sortedGroups[key] = groups[key].sort((a,b) => a.name.localeCompare(b.name));
+      script.onload = () => {
+        if (!window.Module) {
+          reject(new Error("window.Module не определён"));
+          return;
+        }
+
+        window.Module.onRuntimeInitialized = () => {
+          window.Module.isReady = true;
+          resolve();
+        };
+      };
+
+      script.onerror = () => {
+        reject(new Error("Ошибка загрузки скрипта argon2.js"));
+      };
+
+      document.body.appendChild(script);
     });
+  };
 
-    return sortedGroups;
-  }, [entries, searchTerm]);
-  // --- End Filtering and Grouping ---
+  // Группировка паролей по сервису
+  const groupedEntries = entries.reduce((groups, entry) => {
+    // Попытаемся извлечь имя сервиса из имени записи
+    let serviceName = entry.name;
+    
+    // Проверяем, есть ли вообще группа для этого сервиса
+    if (!groups[serviceName]) {
+      groups[serviceName] = [];
+    }
+    
+    groups[serviceName].push(entry);
+    return groups;
+  }, {});
 
+  // Фильтрация по поисковому запросу
+  const filteredGroups = Object.keys(groupedEntries)
+    .filter(service => service.toLowerCase().includes(searchTerm.toLowerCase()))
+    .reduce((obj, key) => {
+      obj[key] = groupedEntries[key];
+      return obj;
+    }, {});
 
   if (loading) return <div className="container"><p>Загрузка сохраненных паролей...</p></div>;
 
-  // --- Updated JSX ---
   return (
     <>
       <Head>
@@ -210,51 +232,49 @@ export default function SavedPasswords() {
       <div className="container">
         <div className="card">
           <h1>Мои пароли</h1>
-
+          
           {error && <div className="error-message">{error}</div>}
-
+          
           <div className="search-container">
-            <input
-              type="text"
-              placeholder="Поиск по названию или сервису..."
+            <input 
+              type="text" 
+              placeholder="Поиск..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
             />
           </div>
-
-          {entries.length === 0 && !loading ? ( // Check entries length after loading
+          
+          {entries.length === 0 ? (
             <p>У вас пока нет сохраненных паролей</p>
-          ) : Object.keys(filteredAndGroupedEntries).length === 0 && !loading && searchTerm ? ( // Check filtered results
-            <p>Записи не найдены для "{searchTerm}"</p>
           ) : (
             <div className="entries-list">
-              {Object.keys(filteredAndGroupedEntries).map(service => (
+              {Object.keys(filteredGroups).map(service => (
                 <div key={service} className="entry-group">
                   <div className="service-name">{service}</div>
-                  {filteredAndGroupedEntries[service].map(entry => (
+                  {filteredGroups[service].map(entry => (
                     <div key={entry._id} className="entry-item">
                       <div className="entry-info">
                         <div className="entry-name">{entry.name}</div>
-                        {/* Additional info could be displayed here if needed */}
+                        {/* Здесь мы можем показать дополнительную информацию, но она зашифрована */}
                       </div>
                       <div className="entry-actions">
-                        <button
-                          className="action-btn password-btn"
-                          onClick={() => handleUseEntry(entry)} // Opens master pw modal
+                        <button 
+                          className="action-btn password-btn" 
+                          onClick={() => generatePasswordForEntry(entry)}
                           title="Получить пароль"
                         >
                           Пароль
                         </button>
-                        <button
-                          className="action-btn edit-btn"
-                          onClick={() => handleUseEntry(entry)} // Opens master pw modal
+                        <button 
+                          className="action-btn edit-btn" 
+                          onClick={() => handleUseEntry(entry)}
                           title="Редактировать параметры"
                         >
                           Редактировать
                         </button>
-                        <button
-                          className="action-btn delete-btn"
+                        <button 
+                          className="action-btn delete-btn" 
                           onClick={() => handleDelete(entry._id)}
                           title="Удалить"
                         >
@@ -267,61 +287,47 @@ export default function SavedPasswords() {
               ))}
             </div>
           )}
-        </div> {/* End card */}
-
-        {/* Floating Action Button to add new entry */}
-        <button
+        </div>
+        
+        <button 
           className="fab-button"
-          onClick={() => {
-              // Clear any edit state before going to editor for a new entry
-              localStorage.removeItem("passwordSettingsToEdit");
-              router.push("/editor");
-          }}
-          title="Добавить новую запись"
+          onClick={() => router.push("/editor")}
         >
           +
         </button>
-
-        {/* Modal for entering master password */}
-        {showPasswordModal && selectedEntry && ( // Ensure selectedEntry exists
+        
+        {/* Модальное окно для ввода мастер-пароля */}
+        {showPasswordModal && (
           <div className="modal-overlay">
             <div className="modal-content">
               <h2>Введите мастер-пароль</h2>
-              <p>Для доступа к параметрам "{selectedEntry.name}" введите мастер-пароль:</p>
-
+              <p>Для получения пароля для "{selectedEntry.name}" введите мастер-пароль:</p>
+              
               <div className="form-group password-input-container">
-                <input
+                <input 
                   type={showPassword ? "text" : "password"}
                   value={masterPassword}
                   onChange={(e) => setMasterPassword(e.target.value)}
                   placeholder="Мастер-пароль"
-                  // Optional: Auto-focus or handle Enter key
-                  autoFocus
-                  onKeyPress={(e) => { if (e.key === 'Enter') decryptAndUse(false); }} // Example: Enter triggers "Show Password"
                 />
-                <button
-                  type="button" // Prevent form submission if inside a form
-                  className="toggle-password-btn"
+                <button 
+                  className="toggle-password-btn" 
                   onClick={() => setShowPassword(!showPassword)}
-                  title={showPassword ? "Скрыть пароль" : "Показать пароль"}
                 >
-                  {showPassword ? "👁️‍🗨️" : "👁️"}
+                  {showPassword ? "👁️" : "👁️‍🗨️"}
                 </button>
               </div>
-
+              
               <div className="modal-actions">
                 <button className="cancel-btn" onClick={() => {
                   setShowPasswordModal(false);
                   setMasterPassword("");
-                  setShowPassword(false); // Reset toggle state on cancel
                 }}>
                   Отмена
                 </button>
-                {/* Button to generate and show password */}
                 <button className="confirm-btn" onClick={() => decryptAndUse(false)}>
                   Показать пароль
                 </button>
-                {/* Button to decrypt and go to editor */}
                 <button className="edit-btn" onClick={() => decryptAndUse(true)}>
                   Редактировать
                 </button>
@@ -329,42 +335,36 @@ export default function SavedPasswords() {
             </div>
           </div>
         )}
-
-        {/* Modal for displaying the generated password */}
+        
+        {/* Модальное окно для отображения сгенерированного пароля */}
         {showGeneratedPasswordModal && (
           <div className="modal-overlay">
             <div className="modal-content">
               <h2>Ваш пароль</h2>
-
+              
               <div className="password-result-container">
-                <input
-                  type="text"
-                  readOnly
+                <input 
+                  type="text" 
+                  readOnly 
                   value={generatedPassword}
                   className="password-result"
                 />
-                <button
-                  className="copy-btn"
+                <button 
+                  className="copy-btn" 
                   onClick={() => {
-                    navigator.clipboard.writeText(generatedPassword)
-                      .then(() => {
-                           alert("Пароль скопирован в буфер обмена!");
-                      })
-                      .catch(err => {
-                           console.error("Failed to copy password: ", err);
-                           alert("Не удалось скопировать пароль.");
-                      });
+                    navigator.clipboard.writeText(generatedPassword);
+                    // Показываем всплывающее сообщение об успешном копировании
+                    alert("Пароль скопирован в буфер обмена");
                   }}
-                  title="Копировать пароль"
                 >
                   ⧉
                 </button>
               </div>
-
+              
               <div className="modal-actions">
                 <button className="confirm-btn" onClick={() => {
                   setShowGeneratedPasswordModal(false);
-                  setGeneratedPassword(""); // Clear password after closing
+                  setGeneratedPassword("");
                 }}>
                   Закрыть
                 </button>
@@ -372,9 +372,7 @@ export default function SavedPasswords() {
             </div>
           </div>
         )}
-      </div> {/* End container */}
+      </div>
     </>
   );
-  // --- End Updated JSX ---
 }
-// --- END OF FILE SavedPasswords.js ---
