@@ -9,9 +9,16 @@ export default function Generator() {
   const [saveName, setSaveName] = useState("");
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [pendingSettings, setPendingSettings] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
+    // Проверяем наличие сохраненных настроек
+    if (localStorage.getItem("passwordSettings")) {
+      setPendingSettings(true);
+      log("Загрузка сохраненных настроек, пожалуйста, подождите...");
+    }
+
     // Создаем глобальный объект Module для Argon2
     window.Module = {
       isReady: false,
@@ -25,6 +32,12 @@ export default function Generator() {
         document.getElementById("generateBtn").disabled = false;
         log("Модуль Argon2 загружен", true);
         setIsLoading(false);
+        
+        // Применяем настройки только после инициализации Argon2
+        if (pendingSettings) {
+          checkSettings();
+          setPendingSettings(false);
+        }
       },
       print: (text) => {
         console.log(`Argon2 says: ${text}`);
@@ -38,6 +51,7 @@ export default function Generator() {
     // Загружаем скрипт Argon2
     const script = document.createElement("script");
     script.src = "/argon2.js";
+    script.async = true;
     script.onerror = (e) => {
       console.error("Failed to load Argon2 script", e);
       setError("Не удалось загрузить модуль Argon2");
@@ -53,22 +67,32 @@ export default function Generator() {
       }
     }, 5000);
 
-    // Проверяем, есть ли сохраненные настройки в localStorage
-    const savedSettings = localStorage.getItem("passwordSettings");
-    if (savedSettings) {
-      try {
-        const settings = JSON.parse(savedSettings);
-        applySettings(settings);
-        localStorage.removeItem("passwordSettings"); // Очищаем после применения
-      } catch (e) {
-        console.error("Error applying saved settings:", e);
+    // Функция для проверки и применения настроек
+    const checkSettings = () => {
+      const savedSettings = localStorage.getItem("passwordSettings");
+      if (savedSettings) {
+        try {
+          const settings = JSON.parse(savedSettings);
+          applySettings(settings);
+          localStorage.removeItem("passwordSettings"); // Очищаем после применения
+          log("Настройки успешно применены", true);
+        } catch (e) {
+          console.error("Error applying saved settings:", e);
+          log("Ошибка при применении настроек");
+        }
       }
+    };
+
+    // Если Argon2 уже загружен (маловероятно, но на всякий случай)
+    if (window.Module && window.Module.isReady) {
+      checkSettings();
+      setPendingSettings(false);
     }
 
     return () => {
       clearTimeout(timeout);
     };
-  }, []);
+  }, [pendingSettings]);
 
   const saveSettings = async () => {
     if (!saveName.trim()) {
