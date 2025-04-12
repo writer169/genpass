@@ -16,7 +16,7 @@ export default function Вход() {
       const ответ = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ пароль }),
+        body: JSON.stringify({ password: пароль }),
       });
       const данные = await ответ.json();
 
