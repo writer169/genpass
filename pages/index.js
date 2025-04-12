@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import dynamic from "next/dynamic";
 
-const Generator = dynamic(() => import("../components/Generator"), { ssr: false });
+const SavedPasswords = dynamic(() => import("../components/SavedPasswords"), { ssr: false });
 
 export default function Home() {
   const router = useRouter();
@@ -18,5 +18,5 @@ export default function Home() {
   }, []);
 
   if (loading) return <p>Загрузка...</p>;
-  return <Generator />;
+  return <SavedPasswords />;
 }
