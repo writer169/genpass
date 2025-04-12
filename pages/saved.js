@@ -1,0 +1,22 @@
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import dynamic from "next/dynamic";
+
+const SavedPasswords = dynamic(() => import("../components/SavedPasswords"), { ssr: false });
+
+export default function SavedPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/check")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.authenticated) router.push("/login");
+        else setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <p>Загрузка...</p>;
+  return <SavedPasswords />;
+}
