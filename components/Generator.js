@@ -233,17 +233,6 @@ export default function Generator() {
           </div>
         </div>
 
-        <div className="card">
-          <div className="form-group">
-            <label htmlFor="settings">Настройки</label>
-            <textarea id="settings" placeholder="Здесь будут закодированные настройки"></textarea>
-          </div>
-
-          <div className="settings-actions">
-            <button className="settings-btn" onClick={copySettings}>Копировать настройки</button>
-            <button className="settings-btn" onClick={pasteSettings}>Применить настройки</button>
-          </div>
-        </div>
 
         <div className="status" id="status">
           {error ? error : isLoading ? "Инициализация..." : "Готово к работе"}
