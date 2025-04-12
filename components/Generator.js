@@ -12,63 +12,67 @@ export default function Generator() {
   const router = useRouter();
 
   useEffect(() => {
-    // Создаем глобальный объект Module для Argon2
-    window.Module = {
-      isReady: false,
-      locateFile: (path) => {
-        console.log(`Loading file: ${path}`);
-        return `/${path}`;  // Добавляем явный слеш для доступа из папки public
-      },
-      onRuntimeInitialized: () => {
-        console.log("Argon2 module initialized");
-        window.Module.isReady = true;
-        document.getElementById("generateBtn").disabled = false;
-        log("Модуль Argon2 загружен", true);
-        setIsLoading(false);
-      },
-      print: (text) => {
-        console.log(`Argon2 says: ${text}`);
-      },
-      printErr: (text) => {
-        console.error(`Argon2 error: ${text}`);
-        setError(`Ошибка инициализации: ${text}`);
-      }
-    };
+  if (window.Module?.isReady) {
+    console.log("Argon уже инициализирован");
+    setIsLoading(false);
 
-    // Загружаем скрипт Argon2
-    const script = document.createElement("script");
-    script.src = "/argon2.js";
-    script.onerror = (e) => {
-      console.error("Failed to load Argon2 script", e);
-      setError("Не удалось загрузить модуль Argon2");
-      log("Ошибка загрузки модуля Argon2");
-    };
-    document.body.appendChild(script);
-
-    // Проверяем спустя 5 секунд, загрузился ли модуль
-    const timeout = setTimeout(() => {
-      if (!window.Module || !window.Module.isReady) {
-        console.warn("Argon2 module not loaded after 5 seconds");
-        log("Argon2 не загрузился за 5 секунд. Проверьте консоль.");
-      }
-    }, 5000);
-
-    // Проверяем, есть ли сохраненные настройки в localStorage
     const savedSettings = localStorage.getItem("passwordSettings");
     if (savedSettings) {
       try {
         const settings = JSON.parse(savedSettings);
         applySettings(settings);
-        localStorage.removeItem("passwordSettings"); // Очищаем после применения
+        localStorage.removeItem("passwordSettings");
+        log("Настройки успешно применены", true);
       } catch (e) {
-        console.error("Error applying saved settings:", e);
+        console.error("Ошибка при применении настроек:", e);
+        log("Ошибка при применении настроек");
       }
     }
 
-    return () => {
-      clearTimeout(timeout);
+    return;
+  }
+
+  setIsLoading(true);
+  const script = document.createElement("script");
+  script.src = "/argon2.js";
+  script.async = true;
+
+  script.onload = () => {
+    if (!window.Module) {
+      console.error("window.Module не определён");
+      log("Ошибка загрузки модуля Argon2");
+      setIsLoading(false);
+      return;
+    }
+
+    window.Module.onRuntimeInitialized = () => {
+      console.log("Argon2 готов");
+      window.Module.isReady = true;
+      setIsLoading(false);
+
+      const savedSettings = localStorage.getItem("passwordSettings");
+      if (savedSettings) {
+        try {
+          const settings = JSON.parse(savedSettings);
+          applySettings(settings);
+          localStorage.removeItem("passwordSettings");
+          log("Настройки успешно применены", true);
+        } catch (e) {
+          console.error("Ошибка при применении настроек:", e);
+          log("Ошибка при применении настроек");
+        }
+      }
     };
-  }, []);
+  };
+
+  script.onerror = () => {
+    console.error("Ошибка загрузки скрипта argon2.js");
+    log("Ошибка загрузки скрипта");
+    setIsLoading(false);
+  };
+
+  document.body.appendChild(script);
+}, []);
 
   const saveSettings = async () => {
     if (!saveName.trim()) {
