@@ -12,64 +12,69 @@ export default function Generator() {
   const router = useRouter();
 
   useEffect(() => {
-    // Создаем глобальный объект Module для Argon2
-    window.Module = {
-      isReady: false,
-      locateFile: (path) => {
-        console.log(`Loading file: ${path}`);
-        return `/${path}`;  // Добавляем явный слеш для доступа из папки public
-      },
-      onRuntimeInitialized: () => {
-        console.log("Argon2 module initialized");
-        window.Module.isReady = true;
-        document.getElementById("generateBtn").disabled = false;
-        log("Модуль Argon2 загружен", true);
-        setIsLoading(false);
-      },
-      print: (text) => {
-        console.log(`Argon2 says: ${text}`);
-      },
-      printErr: (text) => {
-        console.error(`Argon2 error: ${text}`);
-        setError(`Ошибка инициализации: ${text}`);
+  // Создаем глобальный объект Module для Argon2
+  window.Module = {
+    isReady: false,
+    locateFile: (path) => {
+      console.log(`Loading file: ${path}`);
+      return `/${path}`;  // Добавляем явный слеш для доступа из папки public
+    },
+    onRuntimeInitialized: () => {
+      console.log("Argon2 module initialized");
+      window.Module.isReady = true;
+      document.getElementById("generateBtn").disabled = false;
+      log("Модуль Argon2 загружен", true);
+      setIsLoading(false);
+      
+      // Проверяем настройки ТОЛЬКО после полной инициализации Argon2
+      const savedSettings = localStorage.getItem("passwordSettings");
+      if (savedSettings) {
+        try {
+          const settings = JSON.parse(savedSettings);
+          applySettings(settings);
+          localStorage.removeItem("passwordSettings"); // Очищаем после применения
+          log("Настройки успешно применены", true);
+        } catch (e) {
+          console.error("Error applying saved settings:", e);
+          log("Ошибка при применении настроек");
+        }
       }
-    };
-
-    // Загружаем скрипт Argon2
-    const script = document.createElement("script");
-    script.src = "/argon2.js";
-    script.onerror = (e) => {
-      console.error("Failed to load Argon2 script", e);
-      setError("Не удалось загрузить модуль Argon2");
-      log("Ошибка загрузки модуля Argon2");
-    };
-    document.body.appendChild(script);
-
-    // Проверяем спустя 5 секунд, загрузился ли модуль
-    const timeout = setTimeout(() => {
-      if (!window.Module || !window.Module.isReady) {
-        console.warn("Argon2 module not loaded after 5 seconds");
-        log("Argon2 не загрузился за 5 секунд. Проверьте консоль.");
-      }
-    }, 5000);
-
-    // Проверяем, есть ли сохраненные настройки в localStorage
-    const savedSettings = localStorage.getItem("passwordSettings");
-    if (savedSettings) {
-      try {
-        const settings = JSON.parse(savedSettings);
-        applySettings(settings);
-        localStorage.removeItem("passwordSettings"); // Очищаем после применения
-      } catch (e) {
-        console.error("Error applying saved settings:", e);
-      }
+    },
+    print: (text) => {
+      console.log(`Argon2 says: ${text}`);
+    },
+    printErr: (text) => {
+      console.error(`Argon2 error: ${text}`);
+      setError(`Ошибка инициализации: ${text}`);
     }
+  };
 
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, []);
+  // Загружаем скрипт Argon2
+  const script = document.createElement("script");
+  script.src = "/argon2.js";
+  script.onerror = (e) => {
+    console.error("Failed to load Argon2 script", e);
+    setError("Не удалось загрузить модуль Argon2");
+    log("Ошибка загрузки модуля Argon2");
+  };
+  document.body.appendChild(script);
 
+  // Проверяем спустя 5 секунд, загрузился ли модуль
+  const timeout = setTimeout(() => {
+    if (!window.Module || !window.Module.isReady) {
+      console.warn("Argon2 module not loaded after 5 seconds");
+      log("Argon2 не загрузился за 5 секунд. Проверьте консоль.");
+    }
+  }, 5000);
+
+  // ВАЖНО: удаляем отсюда применение настроек, чтобы оно выполнялось
+  // только после полной инициализации Argon2 в onRuntimeInitialized
+
+  return () => {
+    clearTimeout(timeout);
+  };
+}, []);
+  
   const saveSettings = async () => {
     if (!saveName.trim()) {
       alert("Пожалуйста, введите название для сохраняемого пароля");
