@@ -1,54 +1,65 @@
+import { connectToDatabase } from '../../lib/mongodb';
 import mongoose from 'mongoose';
 
-const MONGO_URL = process.env.MONGODB_URI;
-
-let cached = global.mongoose;
-
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
-}
-
-async function connect() {
-  if (cached.conn) return cached.conn;
-  if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGO_URL, {
-      bufferCommands: false,
-    }).then((mongoose) => mongoose);
-  }
-  cached.conn = await cached.promise;
-  return cached.conn;
-}
-
+// Определяем схему один раз
 const EntrySchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true },
   encryptedData: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
 });
 
+// Используем существующую модель или создаем новую
 const Entry = mongoose.models.Entry || mongoose.model('Entry', EntrySchema);
 
 export default async function handler(req, res) {
-  await connect();
+  await connectToDatabase();
 
+  // Получение списка сохраненных записей
   if (req.method === 'GET') {
-    const entries = await Entry.find({}, { name: 1, encryptedData: 1 });
-    return res.status(200).json({ entries });
+    try {
+      const entries = await Entry.find({}, { name: 1, encryptedData: 1 });
+      return res.status(200).json({ entries });
+    } catch (error) {
+      return res.status(500).json({ error: 'Ошибка при получении записей' });
+    }
   }
 
+  // Создание или обновление записи
   if (req.method === 'POST') {
     const { name, encryptedData } = req.body;
 
     if (!name || !encryptedData) {
-      return res.status(400).json({ error: 'Missing name or encryptedData' });
+      return res.status(400).json({ error: 'Отсутствует имя или зашифрованные данные' });
     }
 
-    await Entry.findOneAndUpdate(
-      { name },
-      { encryptedData },
-      { upsert: true, new: true }
-    );
+    try {
+      await Entry.findOneAndUpdate(
+        { name },
+        { encryptedData },
+        { upsert: true, new: true }
+      );
 
-    return res.status(200).json({ success: true });
+      return res.status(200).json({ success: true });
+    } catch (error) {
+      return res.status(500).json({ error: 'Ошибка при сохранении записи' });
+    }
   }
 
-  return res.status(405).json({ error: 'Method not allowed' });
+  // Удаление записи
+  if (req.method === 'DELETE') {
+    const { id } = req.query;
+
+    if (!id) {
+      return res.status(400).json({ error: 'Отсутствует ID записи' });
+    }
+
+    try {
+      await Entry.findByIdAndDelete(id);
+      return res.status(200).json({ success: true });
+    } catch (error) {
+      return res.status(500).json({ error: 'Ошибка при удалении записи' });
+    }
+  }
+
+  return res.status(405).json({ error: 'Метод не разрешен' });
 }
