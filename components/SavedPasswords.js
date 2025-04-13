@@ -230,16 +230,30 @@ export default function SavedPasswords() {
     });
   };
   
-  // Функция для извлечения идентификатора аккаунта из зашифрованных данных
-  // (мы не можем этого сделать без мастер-пароля, поэтому просто используем индекс)
-  const getEntryDisplayName = (entry, index) => {
-    // В будущем можно будет добавить расшифровку и показ имени аккаунта
-    return `Запись ${index + 1}`;
+  // Новая функция для извлечения имени сервиса из полного имени записи
+  const extractServiceName = (fullName) => {
+    // Извлекаем первую часть имени до первого дефиса или возвращаем всё имя
+    return fullName.split(' - ')[0] || fullName;
   };
 
-  // Группировка записей по имени сервиса
+  // Новая функция для извлечения отображаемого имени записи без имени сервиса
+  const getEntryDisplayName = (entry) => {
+    const fullName = entry.name;
+    const serviceName = extractServiceName(fullName);
+    
+    // Если имя записи содержит больше информации, чем просто имя сервиса
+    if (fullName.length > serviceName.length) {
+      // Возвращаем часть имени после имени сервиса и разделителя " - "
+      return fullName.substring(serviceName.length + 3); // +3 для " - "
+    }
+    
+    // Если имя записи совпадает с именем сервиса, возвращаем просто имя
+    return serviceName;
+  };
+
+  // Обновленная группировка записей по имени сервиса
   const groupedEntries = entries.reduce((groups, entry) => {
-    let serviceName = entry.name || "Без имени";
+    let serviceName = extractServiceName(entry.name) || "Без имени";
     if (!groups[serviceName]) {
       groups[serviceName] = [];
     }
@@ -301,14 +315,14 @@ export default function SavedPasswords() {
                 <div key={service} className="entry-group">
                   <div className="service-name">{service}</div>
                   <div className="entries-container">
-                    {filteredGroups[service].map((entry, index) => (
+                    {filteredGroups[service].map((entry) => (
                       <div key={entry._id} className="entry-card">
                         <div 
                           className="entry-card-content" 
                           onClick={() => handleSelectEntry(entry)}
                         >
                           <div className="entry-card-name">
-                            {getEntryDisplayName(entry, index)}
+                            {getEntryDisplayName(entry)}
                           </div>
                         </div>
                         <button
