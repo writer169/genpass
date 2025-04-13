@@ -6,47 +6,12 @@ import CryptoJS from "crypto-js";
 export default function Generator() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  // Добавляем новое состояние для показа/скрытия пароля
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-  if (window.Module?.isReady) {
-    console.log("Argon уже инициализирован");
-    setIsLoading(false);
-
-    const savedSettings = localStorage.getItem("passwordSettings");
-    if (savedSettings) {
-      try {
-        const settings = JSON.parse(savedSettings);
-        applySettings(settings);
-        localStorage.removeItem("passwordSettings");
-        log("Настройки успешно применены", true);
-      } catch (e) {
-        console.error("Ошибка при применении настроек:", e);
-        log("Ошибка при применении настроек");
-      }
-    }
-
-    return;
-  }
-
-  setIsLoading(true);
-  const script = document.createElement("script");
-  script.src = "/argon2.js";
-  script.async = true;
-
-  script.onload = () => {
-    if (!window.Module) {
-      console.error("window.Module не определён");
-      log("Ошибка загрузки модуля Argon2");
-      setIsLoading(false);
-      return;
-    }
-
-    window.Module.onRuntimeInitialized = () => {
-      console.log("Argon2 готов");
-      window.Module.isReady = true;
+    if (window.Module?.isReady) {
+      console.log("Argon уже инициализирован");
       setIsLoading(false);
 
       const savedSettings = localStorage.getItem("passwordSettings");
@@ -61,23 +26,56 @@ export default function Generator() {
           log("Ошибка при применении настроек");
         }
       }
+
+      return;
+    }
+
+    setIsLoading(true);
+    const script = document.createElement("script");
+    script.src = "/argon2.js";
+    script.async = true;
+
+    script.onload = () => {
+      if (!window.Module) {
+        console.error("window.Module не определён");
+        log("Ошибка загрузки модуля Argon2");
+        setIsLoading(false);
+        return;
+      }
+
+      window.Module.onRuntimeInitialized = () => {
+        console.log("Argon2 готов");
+        window.Module.isReady = true;
+        setIsLoading(false);
+
+        const savedSettings = localStorage.getItem("passwordSettings");
+        if (savedSettings) {
+          try {
+            const settings = JSON.parse(savedSettings);
+            applySettings(settings);
+            localStorage.removeItem("passwordSettings");
+            log("Настройки успешно применены", true);
+          } catch (e) {
+            console.error("Ошибка при применении настроек:", e);
+            log("Ошибка при применении настроек");
+          }
+        }
+      };
     };
-  };
 
-  script.onerror = () => {
-    console.error("Ошибка загрузки скрипта argon2.js");
-    log("Ошибка загрузки скрипта");
-    setIsLoading(false);
-  };
+    script.onerror = () => {
+      console.error("Ошибка загрузки скрипта argon2.js");
+      log("Ошибка загрузки скрипта");
+      setIsLoading(false);
+    };
 
-  document.body.appendChild(script);
-}, []);
+    document.body.appendChild(script);
+  }, []);
 
-  // Добавляем функцию для сброса настроек
   const resetSettings = () => {
     document.getElementById("service").value = "";
     document.getElementById("account").value = "default";
-    document.getElementById("device").value = "default"; 
+    document.getElementById("device").value = "default";
     document.getElementById("version").value = "00";
     document.getElementById("length").value = "16";
     document.getElementById("lowercase").checked = true;
@@ -88,85 +86,71 @@ export default function Generator() {
     document.getElementById("result").value = "";
   };
 
-  // Модифицируем функцию saveSettings для автоматического именования
   const saveSettings = async () => {
     const master = document.getElementById("master").value.trim();
     if (!master) {
       alert("Пожалуйста, введите мастер-пароль для шифрования");
       return;
     }
-    
-    // Получаем настройки для сохранения
+
     const settings = getSettings();
-    
-    // Формируем имя на основе настроек
-    let nameComponents = [];
-    
-    // Добавляем сервис (обязательно)
+
     if (!settings.service.trim()) {
       alert("Пожалуйста, введите название сервиса");
       return;
     }
-    nameComponents.push(settings.service);
-    
-    // Добавляем аккаунт, если он не 'default'
-    if (settings.account !== 'default') {
-      nameComponents.push(settings.account);
-    }
-    
-    // Добавляем устройство, если оно не 'default'
-    if (settings.device !== 'default') {
-      nameComponents.push(settings.device);
-    }
-    
-    // Добавляем версию, если она не '00'
-    if (settings.version !== '00') {
-      nameComponents.push(`v${settings.version}`);
-    }
-    
-    let saveName = nameComponents.join(' - ');
-    
+
+    let saveName = settings.service;
+
+    let accountPart = settings.account !== 'default' ? settings.account : '';
+    let devicePart = settings.device !== 'default' ? settings.device : '';
+    let versionPart = settings.version !== '00' ? `v${settings.version}` : '';
+
     try {
-      // Проверяем, существует ли запись с таким именем
+      const isAccountDefault = settings.account === 'default';
+      const isDeviceDefault = settings.device === 'default';
+
+      if (!isAccountDefault || !isDeviceDefault || versionPart) {
+        let nameParts = [saveName];
+        if (accountPart) nameParts.push(accountPart);
+        if (devicePart) nameParts.push(devicePart);
+        if (versionPart) nameParts.push(versionPart);
+        saveName = nameParts.join(' - ');
+      }
+
       const response = await fetch(`/api/entries?name=${encodeURIComponent(saveName)}`);
       const data = await response.json();
-      
+
       if (data.exists) {
-        // Добавляем суффикс к имени
         let counter = 1;
         let newName = `${saveName} (${counter})`;
-        
-        // Проверяем, существует ли запись с новым именем
+
         while (true) {
           const checkResponse = await fetch(`/api/entries?name=${encodeURIComponent(newName)}`);
           const checkData = await checkResponse.json();
-          
+
           if (!checkData.exists) {
             saveName = newName;
             break;
           }
-          
+
           counter++;
           newName = `${saveName} (${counter})`;
         }
       }
-      
-      // Создаем соль на основе имени (можно изменить на более сложную схему)
+
       const salt = saveName;
-      
-      // Генерируем ключ из мастер-пароля
+
       const key = CryptoJS.PBKDF2(master, salt, {
         keySize: 256 / 32,
         iterations: 1000
       });
-      
-      // Шифруем настройки
+
       const encryptedData = CryptoJS.AES.encrypt(
-        JSON.stringify(settings), 
+        JSON.stringify(settings),
         key.toString()
       ).toString();
-      
-      // Отправляем на сервер
+
       const saveResponse = await fetch("/api/entries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -175,12 +159,11 @@ export default function Generator() {
           encryptedData: encryptedData
         })
       });
-      
+
       const saveData = await saveResponse.json();
-      
+
       if (saveData.success) {
         log(`Настройки сохранены как "${saveName}"`, true);
-        // Перенаправляем на главную страницу через 2 секунды
         setTimeout(() => {
           router.push("/");
         }, 2000);
@@ -193,6 +176,7 @@ export default function Generator() {
     }
   };
 
+
   return (
     <>
       <Head>
@@ -202,8 +186,8 @@ export default function Generator() {
       <div className="container">
         <div className="card">
           <div className="header">
-            <button 
-              className="back-btn" 
+            <button
+              className="back-btn"
               onClick={() => router.push("/")}
             >
               ← Назад
@@ -214,13 +198,13 @@ export default function Generator() {
           <div className="form-group">
             <label htmlFor="master">Мастер-фраза</label>
             <div className="password-input-container">
-              <input 
-                type={showPassword ? "text" : "password"} 
-                id="master" 
-                placeholder="Введите секретную фразу" 
+              <input
+                type={showPassword ? "text" : "password"}
+                id="master"
+                placeholder="Введите секретную фразу"
               />
-              <button 
-                className="toggle-password-btn" 
+              <button
+                className="toggle-password-btn"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? "👁️" : "👁️‍🗨️"}
@@ -283,16 +267,16 @@ export default function Generator() {
           </div>
 
           <div className="button-row">
-            <button 
-              className="reset-btn" 
+            <button
+              className="reset-btn"
               onClick={resetSettings}
             >
               Сбросить
             </button>
-            <button 
-              className="generate" 
-              id="generateBtn" 
-              onClick={generatePassword} 
+            <button
+              className="generate"
+              id="generateBtn"
+              onClick={generatePassword}
               disabled={isLoading}
             >
               СГЕНЕРИРОВАТЬ ПАРОЛЬ
@@ -303,10 +287,10 @@ export default function Generator() {
             <input type="text" id="result" readOnly placeholder="Пароль будет здесь" />
             <button className="copy-btn" onClick={() => copyToClipboard('result')}>⧉</button>
           </div>
-          
+
           <div className="button-group">
-            <button 
-              className="save-btn" 
+            <button
+              className="save-btn"
               onClick={saveSettings}
             >
               Сохранить
@@ -322,7 +306,6 @@ export default function Generator() {
   );
 }
 
-// Вспомогательные функции, которые мы выносим за пределы компонента
 function log(msg, isSuccess = false) {
   const statusEl = document.getElementById('status');
   if (statusEl) {
@@ -356,7 +339,7 @@ function stringToBytes(str) {
 
 function getSettings() {
   return {
-    service: document.getElementById("service").value, 
+    service: document.getElementById("service").value,
     account: document.getElementById("account").value,
     device: document.getElementById("device").value,
     version: document.getElementById("version").value,
