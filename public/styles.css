@@ -124,24 +124,24 @@ h1 {
 
 .entry-info {
   flex: 1;
-  margin-right: 15px; /* Added margin from first snippet merge */
+  margin-right: 15px;
 }
 
 .entry-name {
   font-weight: 500;
   font-size: 14px;
-  color: var(--text); /* Ensured color consistency */
+  color: var(--text);
 }
 
 .entry-detail {
   font-size: 12px;
-  color: var(--text-muted); /* Use variable */
+  color: var(--text-muted);
 }
 
 .entry-actions {
   display: flex;
   gap: 8px;
-  flex-shrink: 0; /* Added from first snippet merge */
+  flex-shrink: 0;
 }
 
 .action-btn {
@@ -154,23 +154,23 @@ h1 {
 }
 
 .password-btn {
-  background-color: var(--success); /* Use variable */
+  background-color: var(--success);
   color: white;
-  padding: 6px 12px; /* Style from first snippet */
-  font-size: 0.85rem; /* Style from first snippet */
+  padding: 6px 12px;
+  font-size: 0.85rem;
 }
 .password-btn:hover {
-   background-color: #218838; /* Darker success from first snippet */
+   background-color: #218838;
 }
 
-.edit-btn { /* Style for list edit button */
-  background-color: var(--primary); /* Use variable */
+.edit-btn {
+  background-color: var(--primary);
   color: white;
-  padding: 6px 12px; /* Style from first snippet */
-  font-size: 0.85rem; /* Style from first snippet */
+  padding: 6px 12px;
+  font-size: 0.85rem;
 }
 .edit-btn:hover {
-  background-color: var(--primary-dark); /* Use variable */
+  background-color: var(--primary-dark);
 }
 
 .use-btn {
@@ -194,14 +194,14 @@ h1 {
   transition: all 0.2s;
 }
 .delete-btn:hover {
-    background-color: #c82333; /* Darker danger color */
-    border-color: #bd2130; /* Consistent border */
+    background-color: #c82333;
+    border-color: #bd2130;
 }
 
 .trash-icon {
-  font-size: 1.1em; /* From first snippet */
-  display: inline-block; /* From first snippet */
-  vertical-align: middle; /* From first snippet */
+  font-size: 1.1em;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 
@@ -235,9 +235,9 @@ h1 {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%; /* Use width/height or right/bottom */
+  width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.6); /* Opacity from first snippet */
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -247,12 +247,12 @@ h1 {
 .modal-content {
   background: var(--card-bg);
   border-radius: var(--radius);
-  padding: 25px 30px; /* Padding from first snippet */
-  max-width: 450px; /* Max-width from first snippet */
-  width: 90%; /* Responsive width */
-  position: relative; /* Needed for close button positioning */
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Shadow from first snippet */
-  animation: fadeInModal 0.3s ease-out; /* Animation from first snippet */
+  padding: 25px 30px;
+  max-width: 450px;
+  width: 90%;
+  position: relative;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  animation: fadeInModal 0.3s ease-out;
 }
 
 @keyframes fadeInModal {
@@ -287,7 +287,7 @@ h1 {
 
 .modal-actions button {
   padding: 10px 20px;
-  border-radius: var(--radius-md); /* Use variable */
+  border-radius: var(--radius-md);
   border: none;
   cursor: pointer;
   font-size: 0.95rem;
@@ -296,20 +296,20 @@ h1 {
 }
 
 .modal-actions .confirm-btn {
-  background-color: var(--success); /* Use variable */
+  background-color: var(--success);
   color: white;
 }
 .modal-actions .confirm-btn:hover {
-  background-color: #218838; /* Darker green */
+  background-color: #218838;
   box-shadow: 0 2px 5px rgba(0,0,0,0.15);
 }
 
-.modal-actions .edit-btn { /* Style for modal edit button */
-  background-color: var(--primary); /* Use variable */
+.modal-actions .edit-btn {
+  background-color: var(--primary);
   color: white;
 }
 .modal-actions .edit-btn:hover {
-  background-color: var(--primary-dark); /* Use variable */
+  background-color: var(--primary-dark);
   box-shadow: 0 2px 5px rgba(0,0,0,0.15);
 }
 
@@ -349,24 +349,21 @@ h1 {
   min-height: 60px;
 }
 
-/* Container specifically for master password in modal (from first snippet) */
 .password-input-container {
   position: relative;
   margin-bottom: 20px;
   margin-top: 25px;
 }
 
-/* Master password input field style (from first snippet) */
 .master-password-input {
   width: 100%;
   padding: 12px 40px 12px 15px;
-  border: 1px solid var(--border); /* Use variable */
-  border-radius: var(--radius-md); /* Use variable */
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   font-size: 1rem;
   box-sizing: border-box;
 }
 
-/* Inline toggle button for master password (from first snippet) */
 .toggle-password-btn-inline {
   position: absolute;
   right: 10px;
@@ -379,7 +376,7 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-muted); /* Use variable */
+  color: var(--text-muted);
 }
 
 .toggle-password-btn-inline svg {
@@ -387,15 +384,16 @@ h1 {
 }
 
 .toggle-password-btn-inline:hover {
-    color: var(--text); /* Use variable */
+    color: var(--text);
 }
 
-/* General password toggle for forms (from second snippet) */
 .form-group .password-input-container {
   position: relative;
   display: flex;
   align-items: center;
   width: 100%;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 .password-input-container input[type="password"],
@@ -456,7 +454,6 @@ h1 {
   font-size: 14px;
 }
 
-/* Result container for generated password */
 .result-container {
   position: relative;
   width: 100%;
@@ -489,18 +486,16 @@ h1 {
   color: var(--text);
 }
 
-/* Container for displaying password result in modal (from first snippet) */
 .password-result-container {
   display: flex;
   align-items: center;
   margin-bottom: 20px;
-  background-color: var(--light-bg); /* Use variable */
-  border: 1px solid var(--border); /* Use variable */
-  border-radius: var(--radius-md); /* Use variable */
+  background-color: var(--light-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   padding: 5px 10px;
 }
 
-/* Field for displaying password result in modal (from first snippet) */
 .password-result {
   flex-grow: 1;
   padding: 8px 10px;
@@ -508,13 +503,12 @@ h1 {
   background-color: transparent;
   font-size: 1.1rem;
   font-family: monospace;
-  color: var(--text); /* Use variable */
+  color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
-  word-break: break-all; /* Added */
+  word-break: break-all;
 }
 
-/* Icon button style for copy button in modal (from first snippet) */
 .copy-btn.icon-btn {
   background: none;
   border: none;
@@ -524,16 +518,16 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--primary); /* Use variable */
-  border-radius: var(--radius-sm); /* Use variable */
+  color: var(--primary);
+  border-radius: var(--radius-sm);
   transition: background-color 0.2s ease;
-  position: static; /* Override absolute positioning from base .copy-btn */
-  transform: none; /* Override transform from base .copy-btn */
+  position: static;
+  transform: none;
 }
 
 .copy-btn.icon-btn:hover {
-  color: var(--primary-dark); /* Use variable */
-  background-color: rgba(79, 70, 229, 0.1); /* Primary color with alpha */
+  color: var(--primary-dark);
+  background-color: rgba(79, 70, 229, 0.1);
 }
 
 .copy-btn.icon-btn svg {
@@ -565,7 +559,7 @@ button.generate:disabled {
 }
 
 .reset-btn {
-  background-color: var(--text-muted); /* Use variable */
+  background-color: var(--text-muted);
   color: white;
   border: none;
   border-radius: var(--radius-md);
@@ -577,7 +571,7 @@ button.generate:disabled {
 }
 
 .reset-btn:hover {
-  background-color: #4a5568; /* Darker shade of text-muted */
+  background-color: #4a5568;
 }
 
 .button-row {
@@ -632,12 +626,12 @@ button.generate:disabled {
   position: fixed;
   bottom: 30px;
   right: 30px;
-  width: 56px; /* Size from first snippet */
-  height: 56px; /* Size from first snippet */
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  background-color: var(--primary); /* Use variable */
+  background-color: var(--primary);
   color: white;
-  font-size: 2rem; /* Size from first snippet */
+  font-size: 2rem;
   border: none;
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   cursor: pointer;
@@ -649,12 +643,83 @@ button.generate:disabled {
   z-index: 999;
 }
 .fab-button:hover {
-  background-color: var(--primary-dark); /* Use variable */
+  background-color: var(--primary-dark);
   transform: scale(1.05);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Enhanced shadow on hover */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 .fab-button:active {
   transform: scale(0.98);
+}
+
+.entries-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 0 15px 15px 15px;
+}
+
+.entry-card {
+  position: relative;
+  background-color: var(--light-bg);
+  border-radius: 10px;
+  padding: 15px;
+  width: calc(50% - 5px);
+  box-shadow: var(--shadow);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.entry-card:hover {
+  background-color: var(--border);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.entry-card-content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.entry-card-name {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.delete-circle-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: var(--danger);
+  color: white;
+  border: none;
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  z-index: 2;
+  transition: all 0.2s ease;
+}
+
+.delete-circle-btn:hover {
+  background-color: #c82333;
+  transform: scale(1.1);
+}
+
+
+@media (max-width: 600px) {
+  .entry-card {
+    width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -681,30 +746,38 @@ button.generate:disabled {
 
   .modal-content {
       width: 90%;
-      padding: 20px 15px; /* Adjust padding for smaller screens */
+      padding: 20px 15px;
   }
 
   .modal-actions {
-      gap: 8px; /* Reduce gap */
+      gap: 8px;
   }
   .modal-actions button {
-      padding: 8px 15px; /* Smaller padding */
-      font-size: 0.9rem; /* Slightly smaller font */
+      padding: 8px 15px;
+      font-size: 0.9rem;
   }
 
   .entry-actions {
-      gap: 5px; /* Reduce gap */
+      gap: 5px;
   }
 
   .action-btn {
-      padding: 4px 8px; /* Smaller padding */
-      font-size: 13px; /* Adjust font size */
+      padding: 4px 8px;
+      font-size: 13px;
   }
 
    .delete-btn {
-      width: 28px; /* Smaller delete button */
+      width: 28px;
       height: 28px;
       font-size: 14px;
+  }
+
+  .entries-container {
+    padding: 0 10px 10px 10px;
+  }
+
+  .entry-card {
+    padding: 12px;
   }
 
 }
