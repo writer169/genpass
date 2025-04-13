@@ -1,5 +1,3 @@
-/* START OF FILE styles.css */
-
 :root {
   --primary: #4f46e5;
   --primary-dark: #4338ca;
@@ -9,11 +7,11 @@
   --text: #1e293b;
   --text-muted: #64748b;
   --success: #10b981;
-  --danger: #ef4444; /* Added danger color variable */
+  --danger: #ef4444;
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --radius: 8px;
-  --radius-sm: 4px; /* Added smaller radius */
-  --radius-md: 6px; /* Added medium radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
 }
 
 * {
@@ -55,63 +53,53 @@ h1 {
   margin: 20px 0;
 }
 
-/* MODIFIED/REPLACED entry-item styles */
 .entry-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 15px; /* Updated padding */
-  border-bottom: 1px solid #eee; /* Changed border */
-  /* Removed original border, radius, margin, background */
+  padding: 12px 15px;
+  border-bottom: 1px solid #eee;
 }
 
-/* ADDED: Remove border for last item in a group/list */
 .entry-item:last-child {
   border-bottom: none;
 }
 
-/* ADDED: Container for entry info */
 .entry-info {
   flex: 1;
 }
 
-/* MODIFIED entry-name styles */
 .entry-name {
   font-weight: 500;
-  font-size: 14px; /* Updated font-size */
+  font-size: 14px;
 }
 
-/* ADDED: Styles for entry details */
 .entry-detail {
   font-size: 12px;
-  color: #666; /* Could use --text-muted if preferred */
+  color: #666;
 }
 
-/* No change needed for entry-actions container itself */
 .entry-actions {
   display: flex;
   gap: 8px;
 }
 
-/* MODIFIED action-btn styles */
 .action-btn {
-  padding: 5px 10px; /* Updated padding */
-  border-radius: var(--radius-sm); /* Updated radius, used variable */
-  font-size: 14px; /* Updated font-size */
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
   cursor: pointer;
   border: none;
-  transition: all 0.2s; /* Added transition */
+  transition: all 0.2s;
 }
 
-/* Kept original use-btn style, might need adjustment based on new action-btn base */
 .use-btn {
   background: var(--primary);
   color: white;
 }
 
-/* REPLACED delete-btn styles */
 .delete-btn {
-  background-color: var(--danger); /* Use variable */
+  background-color: var(--danger);
   color: white;
   display: flex;
   align-items: center;
@@ -119,11 +107,11 @@ h1 {
   width: 32px;
   height: 32px;
   font-size: 16px;
-  padding: 0; /* Override base action-btn padding */
-  border-radius: var(--radius-sm); /* Consistent radius */
-  border: none; /* Ensure border is none */
-  cursor: pointer; /* Ensure cursor */
-  transition: all 0.2s; /* Ensure transition */
+  padding: 0;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
 .button-group {
@@ -135,7 +123,7 @@ h1 {
 .save-btn, .view-saved-btn {
   flex: 1;
   padding: 10px;
-  border-radius: var(--radius-md); /* Used variable */
+  border-radius: var(--radius-md);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -158,7 +146,7 @@ h1 {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5); /* Original overlay */
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -168,10 +156,9 @@ h1 {
 .modal-content {
   background: var(--card-bg);
   border-radius: var(--radius);
-  padding: 20px; /* Original padding */
-  /* ADDED: Limit modal width */
-  max-width: 90%; /* Original max-width */
-  width: 400px; /* Original width */
+  padding: 20px;
+  max-width: 90%;
+  width: 400px;
 }
 
 .form-group {
@@ -193,7 +180,7 @@ h1 {
   width: 100%;
   padding: 10px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md); /* Used variable */
+  border-radius: var(--radius-md);
   font-size: 14px;
   transition: border 0.2s, box-shadow 0.2s;
 }
@@ -244,20 +231,16 @@ h1 {
   font-size: 14px;
 }
 
-/* Original simpler definition, potentially overridden by later specific style */
 .result-container {
   position: relative;
-  /* ADDED: Ensure it takes full width if needed */
   width: 100%;
-  margin-bottom: 12px; /* Add some space below */
+  margin-bottom: 12px;
 }
 
-/* MODIFIED: Target textarea specifically if result is in textarea */
 .result-container textarea {
-  padding-right: 45px; /* Make space for the button */
+  padding-right: 45px;
 }
 
-/* Original copy button, positioned absolutely inside textarea container */
 .copy-btn {
   position: absolute;
   right: 8px;
@@ -265,14 +248,14 @@ h1 {
   transform: translateY(-50%);
   padding: 6px 10px;
   background: var(--light-bg);
-  border: 1px solid var(--border); /* Added subtle border */
-  border-radius: var(--radius-md); /* Used variable */
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition: background 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-muted); /* Give icon/text a color */
+  color: var(--text-muted);
 }
 
 .copy-btn:hover {
@@ -286,7 +269,7 @@ button.generate {
   background: var(--primary);
   color: white;
   border: none;
-  border-radius: var(--radius-md); /* Used variable */
+  border-radius: var(--radius-md);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -326,7 +309,7 @@ button.generate:disabled {
   padding: 8px;
   border: 1px solid var(--border);
   background: var(--light-bg);
-  border-radius: var(--radius-md); /* Used variable */
+  border-radius: var(--radius-md);
   cursor: pointer;
   font-size: 12px;
   transition: all 0.2s;
@@ -350,7 +333,6 @@ button.generate:disabled {
     margin-bottom: 12px;
   }
 
-  /* ADDED: Adjust FAB size/position on mobile */
   .fab-button {
       bottom: 20px;
       right: 20px;
@@ -359,15 +341,11 @@ button.generate:disabled {
       font-size: 24px;
   }
 
-  /* ADDED: Adjust modal width on mobile */
   .modal-content {
-      width: 90%; /* This might override the specific width: 400px on mobile */
+      width: 90%;
   }
 }
 
-/* --- START OF ADDED STYLES --- */
-
-/* Стили для поля поиска */
 .search-container {
   margin-bottom: 20px;
   width: 100%;
@@ -376,10 +354,9 @@ button.generate:disabled {
 .search-input {
   width: 100%;
   padding: 10px 15px;
-  border: 1px solid var(--border); /* Use variable */
-  border-radius: var(--radius-md); /* Use variable */
-  font-size: 16px; /* Keep or adjust? */
-  /* ADDED: focus style consistent with others */
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 16px;
   transition: border 0.2s, box-shadow 0.2s;
 }
 .search-input:focus {
@@ -388,50 +365,37 @@ button.generate:disabled {
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
 }
 
-
-/* Стили для группировки записей */
 .entry-group {
   margin-bottom: 15px;
-  border: 1px solid #eee; /* Maybe use var(--border)? */
-  border-radius: var(--radius); /* Use variable */
+  border: 1px solid #eee;
+  border-radius: var(--radius);
   overflow: hidden;
-  background: var(--card-bg); /* Give group a background */
-  box-shadow: var(--shadow); /* Optional: give group shadow */
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
 }
 
 .service-name {
-  background-color: var(--light-bg); /* Use variable */
+  background-color: var(--light-bg);
   padding: 8px 15px;
   font-weight: bold;
-  border-bottom: 1px solid #eee; /* Maybe use var(--border)? */
-  color: var(--text); /* Ensure text color */
+  border-bottom: 1px solid #eee;
+  color: var(--text);
 }
 
-/* Note: .entry-item styles were modified/replaced above */
-
-/* ADDED: Specific button styles for actions */
 .password-btn {
-  background-color: #4CAF50; /* Consider var(--success) or a new var */
+  background-color: #4CAF50;
   color: white;
 }
 
 .edit-btn {
-  background-color: #2196F3; /* Consider var(--primary) or a new var */
+  background-color: #2196F3;
   color: white;
 }
 
-/* Note: .delete-btn styles were replaced above */
-
-/* ADDED: Icon style (example if using font icon) */
 .trash-icon {
-  /* Example: if using font awesome */
-  /* font-family: "Font Awesome 5 Free"; */
-  /* font-weight: 900; */
-  /* content: "\f2ed"; */
-  font-size: 16px; /* Already set in delete-btn */
+  font-size: 16px;
 }
 
-/* Стили для FAB кнопки */
 .fab-button {
   position: fixed;
   bottom: 30px;
@@ -439,7 +403,7 @@ button.generate:disabled {
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background-color: #FF9800; /* Consider a variable? --warning? */
+  background-color: #FF9800;
   color: white;
   font-size: 30px;
   border: none;
@@ -453,64 +417,57 @@ button.generate:disabled {
 }
 
 .fab-button:hover {
-  background-color: #F57C00; /* Darker shade */
+  background-color: #F57C00;
   transform: scale(1.05);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
 }
 
-/* Стили для заголовка с кнопкой назад */
 .header {
   display: flex;
   align-items: center;
   margin-bottom: 20px;
-  /* ADDED: Maybe center title if back button exists */
-  /* justify-content: space-between; */ /* Or flex-start */
 }
 
 .back-btn {
   background: none;
   border: none;
-  font-size: 24px; /* Increased size for better tap target */
-  color: var(--primary); /* Use variable */
+  font-size: 24px;
+  color: var(--primary);
   cursor: pointer;
-  margin-right: 10px; /* Adjusted spacing */
-  padding: 0 5px; /* Adjusted padding */
-  line-height: 1; /* Prevent extra height */
+  margin-right: 10px;
+  padding: 0 5px;
+  line-height: 1;
 }
 
 .back-btn:hover {
-  color: var(--primary-dark); /* Use variable */
+  color: var(--primary-dark);
 }
 
-/* Стили для контейнера пароля с глазиком (внутри form-group) */
-/* Ensure it works within .form-group */
 .form-group .password-input-container {
   position: relative;
-  display: flex; /* Use flex */
-  align-items: center; /* Vertically align button */
+  display: flex;
+  align-items: center;
   width: 100%;
 }
 
-/* Adjust input padding to make space for button (внутри form-group) */
 .form-group .password-input-container input[type="password"],
-.form-group .password-input-container input[type="text"] { /* Handle toggled state */
-  width: 100%; /* Already handled by .form-group > input */
-  padding-right: 40px; /* Make space for the button */
+.form-group .password-input-container input[type="text"] {
+  width: 100%;
+  padding-right: 40px;
 }
 
-/* Original toggle button (внутри form-group) */
 .form-group .toggle-password-btn {
   position: absolute;
-  right: 0px; /* Position inside the input padding */
+  right: 0px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 18px; /* Slightly larger */
-  color: var(--text-muted); /* Use variable */
-  padding: 0 10px; /* Clickable area */
-  height: 100%; /* Make button full height of input */
+  font-size: 18px;
+  color: var(--text-muted);
+  padding: 0 10px;
+  height: 100%;
   display: flex;
   align-items: center;
 }
@@ -518,24 +475,20 @@ button.generate:disabled {
     color: var(--text);
 }
 
-/* Стили для контейнера результата пароля в модальном окне - Replaced below */
-/* .password-result-container { ... } */
-
-/* Стили для кнопки сброса */
 .reset-btn {
-  background-color: #9E9E9E; /* Consider var(--text-muted) bg? */
+  background-color: #9E9E9E;
   color: white;
   border: none;
-  border-radius: var(--radius-md); /* Use variable */
+  border-radius: var(--radius-md);
   padding: 10px 15px;
   cursor: pointer;
-  font-size: 14px; /* Consistent with generate */
-  font-weight: 600; /* Consistent with generate */
+  font-size: 14px;
+  font-weight: 600;
   transition: all 0.2s;
 }
 
 .reset-btn:hover {
-  background-color: #757575; /* Darker grey */
+  background-color: #757575;
 }
 
 .button-row {
@@ -544,150 +497,105 @@ button.generate:disabled {
   margin-top: 20px;
 }
 
-/* Make generate button take available space */
 .button-row .generate {
   flex: 1;
-  margin-bottom: 0; /* Override default margin */
+  margin-bottom: 0;
 }
 
-/* Ensure reset button doesn't stretch if generate is flex:1 */
 .button-row .reset-btn {
   flex-shrink: 0;
 }
 
-
-/* --- END OF ADDED STYLES --- */
-
-
-/* ======================================== */
-/* === Стили для Модального Окна Мастер-Пароля === */
-/* ======================================== */
-
-/* Общие стили для модального окна (переопределение/дополнение) */
-/* .modal-overlay already defined, new style below is more specific if needed */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.6); /* Slightly darker overlay */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000; /* Убедитесь, что окно поверх всего */
-}
-
-/* .modal-content already defined, use specific class below to modify */
-/*
-.modal-content {
-  background-color: #fff; // Use var(--card-bg)
-  padding: 25px;
-  border-radius: 8px; // Use var(--radius)
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); // Consider var(--shadow)
-  width: 90%; // Already set for mobile
-  max-width: 400px; // Already set
-  box-sizing: border-box;
-}
-*/
-
-/* Специфичные стили для модального окна ввода мастер-пароля */
 .modal-content.master-password-modal {
-  background-color: var(--card-bg); /* Use variable */
-  border-radius: var(--radius); /* Use variable */
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Keep or adjust shadow */
-  width: 90%; /* Consistent with mobile */
-  max-width: 400px; /* Consistent */
+  background-color: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 400px;
   box-sizing: border-box;
-
-  position: relative; /* Нужно для позиционирования кнопки закрытия */
-  padding: 45px 25px 25px 25px; /* Увеличена верхняя подбивка для кнопки */
-  min-width: 300px; /* Minimum width for this specific modal */
-  text-align: center; /* Центрируем содержимое */
+  position: relative;
+  padding: 45px 25px 25px 25px;
+  min-width: 300px;
+  text-align: center;
 }
 
-/* Кнопка закрытия (крестик) */
 .modal-close-btn {
   position: absolute;
   top: 10px;
   right: 10px;
   background: none;
   border: none;
-  font-size: 2rem; /* Размер крестика */
+  font-size: 2rem;
   font-weight: bold;
   line-height: 1;
-  color: #aaa; /* Цвет крестика - Use var(--text-muted)? */
+  color: #aaa;
   cursor: pointer;
   padding: 5px;
   transition: color 0.2s ease;
 }
 
 .modal-close-btn:hover {
-  color: #333; /* Цвет при наведении - Use var(--text)? */
+  color: #333;
 }
 
-/* Контейнер для поля ввода пароля и кнопки "глаз" в Мастер Модале */
 .master-password-modal .password-input-container {
   display: flex;
   align-items: center;
-  margin-bottom: 25px; /* Отступ снизу */
-  border: 1px solid var(--border); /* Use variable */
-  border-radius: var(--radius-sm); /* Use variable */
-  overflow: hidden; /* Чтобы скруглить углы и для рамки */
-  background-color: var(--card-bg); /* Ensure background */
+  margin-bottom: 25px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background-color: var(--card-bg);
 }
 
 .master-password-modal .password-input-container input[type="password"],
 .master-password-modal .password-input-container input[type="text"] {
-  flex-grow: 1; /* Поле ввода занимает все доступное место */
+  flex-grow: 1;
   padding: 12px 15px;
-  border: none; /* Убираем стандартную рамку поля ввода */
-  outline: none; /* Убираем обводку при фокусе */
+  border: none;
+  outline: none;
   font-size: 1rem;
-  background-color: transparent; /* Inherit from container */
-  color: var(--text); /* Use variable */
+  background-color: transparent;
+  color: var(--text);
 }
 
-/* Кнопка показать/скрыть пароль ("глаз") в Мастер Модале */
 .master-password-modal .toggle-password-btn {
   background: none;
   border: none;
-  padding: 0 15px; /* Отступы слева/справа */
+  padding: 0 15px;
   cursor: pointer;
-  font-size: 1.2rem; /* Размер иконки */
-  color: var(--text-muted); /* Use variable */
-  align-self: stretch; /* Растягиваем по высоте контейнера */
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  align-self: stretch;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-left: 1px solid var(--border); /* Use variable */
-  background-color: var(--light-bg); /* Use variable */
+  border-left: 1px solid var(--border);
+  background-color: var(--light-bg);
   transition: background-color 0.2s ease;
 }
 
 .master-password-modal .toggle-password-btn:hover {
-  background-color: var(--border); /* Use variable */
+  background-color: var(--border);
 }
 
-/* Контейнер для кнопок "Пароль" и "Редактировать" в Мастер Модале */
 .master-password-modal .modal-actions {
   display: flex;
-  justify-content: center; /* Центрируем кнопки */
-  gap: 15px; /* Пространство между кнопками */
-  margin-top: 10px; /* Небольшой отступ сверху */
+  justify-content: center;
+  gap: 15px;
+  margin-top: 10px;
 }
 
-/* Общие стили для кнопок "Пароль" и "Редактировать" */
 .password-action-btn {
   padding: 12px 20px;
   font-size: 1rem;
   border: none;
-  border-radius: var(--radius-md); /* Use variable */
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition: background-color 0.2s ease, opacity 0.2s ease;
-  flex-grow: 1; /* Кнопки растягиваются */
-  max-width: 180px; /* Ограничиваем максимальную ширину */
-  font-weight: 500; /* Added weight */
+  flex-grow: 1;
+  max-width: 180px;
+  font-weight: 500;
 }
 
 .password-action-btn:disabled {
@@ -695,105 +603,90 @@ button.generate:disabled {
     cursor: not-allowed;
 }
 
-/* Стилизация кнопки "Пароль" (можно использовать .confirm-btn, если он уже стилизован) */
 .master-password-modal .confirm-btn {
-  background-color: var(--primary); /* Use variable */
+  background-color: var(--primary);
   color: white;
 }
 
 .master-password-modal .confirm-btn:hover:not(:disabled) {
-  background-color: var(--primary-dark); /* Use variable */
+  background-color: var(--primary-dark);
 }
 
-/* Стилизация кнопки "Редактировать" */
 .master-password-modal .edit-btn {
-  /* This selector has higher specificity than the global .edit-btn */
-  background-color: var(--text-muted); /* Use variable (example) */
+  background-color: var(--text-muted);
   color: white;
 }
 
 .master-password-modal .edit-btn:hover:not(:disabled) {
-  background-color: #4a5568; /* Darker muted */
+  background-color: #4a5568;
 }
 
-
-/* ======================================== */
-/* === Стили для Модального Окна с Паролем === */
-/* ======================================== */
-
-/* Контейнер для результата пароля и кнопки копирования (Replaces original .result-container styles for this context) */
 .password-result-container {
   display: flex;
   align-items: center;
   margin-bottom: 20px;
-  border: 1px solid var(--border); /* Use variable */
-  border-radius: var(--radius-md); /* Use variable */
-  overflow: hidden; /* Для рамки и скругления */
-  background-color: var(--light-bg); /* Use variable */
-  width: 100%; /* Ensure full width */
-  position: relative; /* Reset position context from original */
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background-color: var(--light-bg);
+  width: 100%;
+  position: relative;
 }
 
 .password-result {
   flex-grow: 1;
   padding: 12px 15px;
-  font-size: 1.1rem; /* Немного крупнее */
-  font-family: 'Courier New', Courier, monospace; /* Моноширинный шрифт */
+  font-size: 1.1rem;
+  font-family: 'Courier New', Courier, monospace;
   border: none;
-  background-color: transparent; /* Inherit from container */
-  color: var(--text); /* Use variable */
+  background-color: transparent;
+  color: var(--text);
   outline: none;
-  word-break: break-all; /* Handle long passwords */
-  /* Remove padding-right if copy button is outside/flexed */
+  word-break: break-all;
 }
 
-/* Specific copy button style for password-result-container */
 .password-result-container .copy-btn {
-  /* Reset absolute positioning from the general .copy-btn */
   position: static;
   transform: none;
-  height: auto; /* Reset height */
-  align-self: stretch; /* Stretch vertically */
-
-  background-color: var(--light-bg); /* Use variable */
+  height: auto;
+  align-self: stretch;
+  background-color: var(--light-bg);
   border: none;
-  border-left: 1px solid var(--border); /* Use variable */
+  border-left: 1px solid var(--border);
   padding: 0 15px;
   cursor: pointer;
-  font-size: 1.5rem; /* Размер иконки копирования */
-  color: var(--text-muted); /* Use variable */
+  font-size: 1.5rem;
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background-color 0.2s ease, color 0.2s ease;
-  border-radius: 0; /* Override default radius */
-  flex-shrink: 0; /* Prevent shrinking */
+  border-radius: 0;
+  flex-shrink: 0;
 }
 
 .password-result-container .copy-btn:hover {
-  background-color: var(--border); /* Use variable */
-  color: var(--text); /* Use variable */
+  background-color: var(--border);
+  color: var(--text);
 }
 
-/* Стили кнопок в модальном окне (если нужны или для переопределения) */
 .modal-actions {
-  display: flex; /* Ensure flex display */
-  gap: 10px; /* Spacing between buttons */
-  justify-content: flex-end; /* Align buttons to the right typical for modals */
-  margin-top: 15px; /* Space above action buttons */
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 15px;
 }
 
 .modal-actions .confirm-btn,
-.modal-actions .cancel-btn { /* Добавлен .cancel-btn на всякий случай */
+.modal-actions .cancel-btn {
    padding: 10px 20px;
-   border-radius: var(--radius-md); /* Use variable */
+   border-radius: var(--radius-md);
    cursor: pointer;
    font-weight: 500;
    border: none;
    transition: background-color 0.2s ease, opacity 0.2s ease;
 }
 
-/* Example styles for generic confirm/cancel in modals */
 .modal-actions .confirm-btn {
     background-color: var(--primary);
     color: white;
@@ -816,6 +709,3 @@ button.generate:disabled {
      opacity: 0.6;
      cursor: not-allowed;
 }
-
-/* --- Остальные стили вашего файла styles.css --- */
-/* (This comment indicates the end of the added blocks, though they are integrated now) */
