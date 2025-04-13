@@ -1,3 +1,5 @@
+/* START OF FILE styles.css */
+
 :root {
   --primary: #4f46e5;
   --primary-dark: #4338ca;
@@ -156,7 +158,7 @@ h1 {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.5); /* Original overlay */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -166,10 +168,10 @@ h1 {
 .modal-content {
   background: var(--card-bg);
   border-radius: var(--radius);
-  padding: 20px;
+  padding: 20px; /* Original padding */
   /* ADDED: Limit modal width */
-  max-width: 90%;
-  width: 400px; /* Or a specific width */
+  max-width: 90%; /* Original max-width */
+  width: 400px; /* Original width */
 }
 
 .form-group {
@@ -242,6 +244,7 @@ h1 {
   font-size: 14px;
 }
 
+/* Original simpler definition, potentially overridden by later specific style */
 .result-container {
   position: relative;
   /* ADDED: Ensure it takes full width if needed */
@@ -254,7 +257,7 @@ h1 {
   padding-right: 45px; /* Make space for the button */
 }
 
-
+/* Original copy button, positioned absolutely inside textarea container */
 .copy-btn {
   position: absolute;
   right: 8px;
@@ -358,7 +361,7 @@ button.generate:disabled {
 
   /* ADDED: Adjust modal width on mobile */
   .modal-content {
-      width: 90%;
+      width: 90%; /* This might override the specific width: 400px on mobile */
   }
 }
 
@@ -479,23 +482,24 @@ button.generate:disabled {
   color: var(--primary-dark); /* Use variable */
 }
 
-/* Стили для контейнера пароля с глазиком */
+/* Стили для контейнера пароля с глазиком (внутри form-group) */
 /* Ensure it works within .form-group */
 .form-group .password-input-container {
   position: relative;
-  display: flex; /* Already flex, keep */
+  display: flex; /* Use flex */
   align-items: center; /* Vertically align button */
   width: 100%;
 }
 
-/* Adjust input padding to make space for button */
-.password-input-container input[type="password"],
-.password-input-container input[type="text"] { /* Handle toggled state */
+/* Adjust input padding to make space for button (внутри form-group) */
+.form-group .password-input-container input[type="password"],
+.form-group .password-input-container input[type="text"] { /* Handle toggled state */
   width: 100%; /* Already handled by .form-group > input */
   padding-right: 40px; /* Make space for the button */
 }
 
-.toggle-password-btn {
+/* Original toggle button (внутри form-group) */
+.form-group .toggle-password-btn {
   position: absolute;
   right: 0px; /* Position inside the input padding */
   top: 50%;
@@ -510,52 +514,12 @@ button.generate:disabled {
   display: flex;
   align-items: center;
 }
-.toggle-password-btn:hover {
+.form-group .toggle-password-btn:hover {
     color: var(--text);
 }
 
-/* Стили для контейнера результата пароля в модальном окне */
-.password-result-container {
-  display: flex; /* Keep flex */
-  align-items: center; /* Align items vertically */
-  width: 100%;
-  margin-bottom: 20px;
-  /* ADDED: Position relative for potential copy button inside */
-  position: relative;
-}
-
-.password-result {
-  flex: 1;
-  padding: 10px;
-  border: 1px solid var(--border); /* Use variable */
-  border-radius: var(--radius-md); /* Use variable */
-  font-family: monospace;
-  font-size: 16px; /* Keep or adjust? */
-  background-color: var(--light-bg); /* Differentiate from input */
-  color: var(--text); /* Ensure text color */
-  /* ADDED: Handle long passwords */
-  word-break: break-all;
-  /* ADDED: Make space for copy button if placed inside */
-  /* padding-right: 45px; */
-}
-
-/* Example: Add copy button *inside* password-result-container */
-/*
-.password-result-container .copy-btn {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    padding: 5px;
-    color: var(--text-muted);
-}
-.password-result-container .copy-btn:hover {
-    color: var(--primary);
-}
-*/
-
+/* Стили для контейнера результата пароля в модальном окне - Replaced below */
+/* .password-result-container { ... } */
 
 /* Стили для кнопки сброса */
 .reset-btn {
@@ -593,3 +557,265 @@ button.generate:disabled {
 
 
 /* --- END OF ADDED STYLES --- */
+
+
+/* ======================================== */
+/* === Стили для Модального Окна Мастер-Пароля === */
+/* ======================================== */
+
+/* Общие стили для модального окна (переопределение/дополнение) */
+/* .modal-overlay already defined, new style below is more specific if needed */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); /* Slightly darker overlay */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Убедитесь, что окно поверх всего */
+}
+
+/* .modal-content already defined, use specific class below to modify */
+/*
+.modal-content {
+  background-color: #fff; // Use var(--card-bg)
+  padding: 25px;
+  border-radius: 8px; // Use var(--radius)
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); // Consider var(--shadow)
+  width: 90%; // Already set for mobile
+  max-width: 400px; // Already set
+  box-sizing: border-box;
+}
+*/
+
+/* Специфичные стили для модального окна ввода мастер-пароля */
+.modal-content.master-password-modal {
+  background-color: var(--card-bg); /* Use variable */
+  border-radius: var(--radius); /* Use variable */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Keep or adjust shadow */
+  width: 90%; /* Consistent with mobile */
+  max-width: 400px; /* Consistent */
+  box-sizing: border-box;
+
+  position: relative; /* Нужно для позиционирования кнопки закрытия */
+  padding: 45px 25px 25px 25px; /* Увеличена верхняя подбивка для кнопки */
+  min-width: 300px; /* Minimum width for this specific modal */
+  text-align: center; /* Центрируем содержимое */
+}
+
+/* Кнопка закрытия (крестик) */
+.modal-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 2rem; /* Размер крестика */
+  font-weight: bold;
+  line-height: 1;
+  color: #aaa; /* Цвет крестика - Use var(--text-muted)? */
+  cursor: pointer;
+  padding: 5px;
+  transition: color 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  color: #333; /* Цвет при наведении - Use var(--text)? */
+}
+
+/* Контейнер для поля ввода пароля и кнопки "глаз" в Мастер Модале */
+.master-password-modal .password-input-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 25px; /* Отступ снизу */
+  border: 1px solid var(--border); /* Use variable */
+  border-radius: var(--radius-sm); /* Use variable */
+  overflow: hidden; /* Чтобы скруглить углы и для рамки */
+  background-color: var(--card-bg); /* Ensure background */
+}
+
+.master-password-modal .password-input-container input[type="password"],
+.master-password-modal .password-input-container input[type="text"] {
+  flex-grow: 1; /* Поле ввода занимает все доступное место */
+  padding: 12px 15px;
+  border: none; /* Убираем стандартную рамку поля ввода */
+  outline: none; /* Убираем обводку при фокусе */
+  font-size: 1rem;
+  background-color: transparent; /* Inherit from container */
+  color: var(--text); /* Use variable */
+}
+
+/* Кнопка показать/скрыть пароль ("глаз") в Мастер Модале */
+.master-password-modal .toggle-password-btn {
+  background: none;
+  border: none;
+  padding: 0 15px; /* Отступы слева/справа */
+  cursor: pointer;
+  font-size: 1.2rem; /* Размер иконки */
+  color: var(--text-muted); /* Use variable */
+  align-self: stretch; /* Растягиваем по высоте контейнера */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid var(--border); /* Use variable */
+  background-color: var(--light-bg); /* Use variable */
+  transition: background-color 0.2s ease;
+}
+
+.master-password-modal .toggle-password-btn:hover {
+  background-color: var(--border); /* Use variable */
+}
+
+/* Контейнер для кнопок "Пароль" и "Редактировать" в Мастер Модале */
+.master-password-modal .modal-actions {
+  display: flex;
+  justify-content: center; /* Центрируем кнопки */
+  gap: 15px; /* Пространство между кнопками */
+  margin-top: 10px; /* Небольшой отступ сверху */
+}
+
+/* Общие стили для кнопок "Пароль" и "Редактировать" */
+.password-action-btn {
+  padding: 12px 20px;
+  font-size: 1rem;
+  border: none;
+  border-radius: var(--radius-md); /* Use variable */
+  cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+  flex-grow: 1; /* Кнопки растягиваются */
+  max-width: 180px; /* Ограничиваем максимальную ширину */
+  font-weight: 500; /* Added weight */
+}
+
+.password-action-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Стилизация кнопки "Пароль" (можно использовать .confirm-btn, если он уже стилизован) */
+.master-password-modal .confirm-btn {
+  background-color: var(--primary); /* Use variable */
+  color: white;
+}
+
+.master-password-modal .confirm-btn:hover:not(:disabled) {
+  background-color: var(--primary-dark); /* Use variable */
+}
+
+/* Стилизация кнопки "Редактировать" */
+.master-password-modal .edit-btn {
+  /* This selector has higher specificity than the global .edit-btn */
+  background-color: var(--text-muted); /* Use variable (example) */
+  color: white;
+}
+
+.master-password-modal .edit-btn:hover:not(:disabled) {
+  background-color: #4a5568; /* Darker muted */
+}
+
+
+/* ======================================== */
+/* === Стили для Модального Окна с Паролем === */
+/* ======================================== */
+
+/* Контейнер для результата пароля и кнопки копирования (Replaces original .result-container styles for this context) */
+.password-result-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  border: 1px solid var(--border); /* Use variable */
+  border-radius: var(--radius-md); /* Use variable */
+  overflow: hidden; /* Для рамки и скругления */
+  background-color: var(--light-bg); /* Use variable */
+  width: 100%; /* Ensure full width */
+  position: relative; /* Reset position context from original */
+}
+
+.password-result {
+  flex-grow: 1;
+  padding: 12px 15px;
+  font-size: 1.1rem; /* Немного крупнее */
+  font-family: 'Courier New', Courier, monospace; /* Моноширинный шрифт */
+  border: none;
+  background-color: transparent; /* Inherit from container */
+  color: var(--text); /* Use variable */
+  outline: none;
+  word-break: break-all; /* Handle long passwords */
+  /* Remove padding-right if copy button is outside/flexed */
+}
+
+/* Specific copy button style for password-result-container */
+.password-result-container .copy-btn {
+  /* Reset absolute positioning from the general .copy-btn */
+  position: static;
+  transform: none;
+  height: auto; /* Reset height */
+  align-self: stretch; /* Stretch vertically */
+
+  background-color: var(--light-bg); /* Use variable */
+  border: none;
+  border-left: 1px solid var(--border); /* Use variable */
+  padding: 0 15px;
+  cursor: pointer;
+  font-size: 1.5rem; /* Размер иконки копирования */
+  color: var(--text-muted); /* Use variable */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  border-radius: 0; /* Override default radius */
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+.password-result-container .copy-btn:hover {
+  background-color: var(--border); /* Use variable */
+  color: var(--text); /* Use variable */
+}
+
+/* Стили кнопок в модальном окне (если нужны или для переопределения) */
+.modal-actions {
+  display: flex; /* Ensure flex display */
+  gap: 10px; /* Spacing between buttons */
+  justify-content: flex-end; /* Align buttons to the right typical for modals */
+  margin-top: 15px; /* Space above action buttons */
+}
+
+.modal-actions .confirm-btn,
+.modal-actions .cancel-btn { /* Добавлен .cancel-btn на всякий случай */
+   padding: 10px 20px;
+   border-radius: var(--radius-md); /* Use variable */
+   cursor: pointer;
+   font-weight: 500;
+   border: none;
+   transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+/* Example styles for generic confirm/cancel in modals */
+.modal-actions .confirm-btn {
+    background-color: var(--primary);
+    color: white;
+}
+.modal-actions .confirm-btn:hover:not(:disabled) {
+    background-color: var(--primary-dark);
+}
+
+.modal-actions .cancel-btn {
+    background-color: var(--light-bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+.modal-actions .cancel-btn:hover:not(:disabled) {
+    background-color: var(--border);
+}
+
+.modal-actions .confirm-btn:disabled,
+.modal-actions .cancel-btn:disabled {
+     opacity: 0.6;
+     cursor: not-allowed;
+}
+
+/* --- Остальные стили вашего файла styles.css --- */
+/* (This comment indicates the end of the added blocks, though they are integrated now) */
