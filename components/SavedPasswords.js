@@ -11,7 +11,7 @@ export default function SavedPasswords() {
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false); // Этот стейт теперь управляет новым модальным окном
   const [showGeneratedPasswordModal, setShowGeneratedPasswordModal] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState("");
   const router = useRouter();
@@ -20,11 +20,13 @@ export default function SavedPasswords() {
     fetchEntries();
   }, []);
 
+  // --- Функции fetchEntries, handleDelete, handleUseEntry остаются без изменений ---
+
   const fetchEntries = async () => {
     try {
       const response = await fetch("/api/entries");
       const data = await response.json();
-      
+
       if (data.entries) {
         setEntries(data.entries);
       }
@@ -42,9 +44,8 @@ export default function SavedPasswords() {
         const response = await fetch(`/api/entries?id=${entryId}`, {
           method: "DELETE",
         });
-        
+
         if (response.ok) {
-          // Обновляем список после удаления
           fetchEntries();
         } else {
           setError("Ошибка при удалении пароля");
@@ -58,123 +59,27 @@ export default function SavedPasswords() {
 
   const handleUseEntry = (entry) => {
     setSelectedEntry(entry);
-    setShowPasswordModal(true);
+    setMasterPassword(""); // Очищаем поле пароля при открытии
+    setShowPassword(false); // Скрываем пароль по умолчанию
+    setShowPasswordModal(true); // Показываем новое модальное окно
   };
 
-  // Добавьте функцию для генерации пароля
-  const generatePasswordForEntry = async (entry) => {
+  // Эта функция вызывается кнопкой "Пароль" на элементе списка
+  const generatePasswordForEntry = (entry) => {
     setSelectedEntry(entry);
-    setShowPasswordModal(true);
+    setMasterPassword(""); // Очищаем поле пароля при открытии
+    setShowPassword(false); // Скрываем пароль по умолчанию
+    setShowPasswordModal(true); // Показываем новое модальное окно
   };
 
-  // Модифицируем функцию decryptAndUse
-  const decryptAndUse = async (redirect = true) => {
-    if (!masterPassword) {
-      alert("Пожалуйста, введите мастер-пароль");
-      return;
-    }
-
-    try {
-      const salt = selectedEntry.name;
-      const key = CryptoJS.PBKDF2(masterPassword, salt, {
-        keySize: 256 / 32,
-        iterations: 1000
-      });
-      
-      const bytes = CryptoJS.AES.decrypt(selectedEntry.encryptedData, key.toString());
-      const decryptedSettings = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-      
-      if (redirect) {
-        // Переход на редактор
-        localStorage.setItem("passwordSettings", JSON.stringify(decryptedSettings));
-        router.push("/editor");
-      } else {
-        // Генерация пароля без перехода
-        if (!window.Module || !window.Module.isReady) {
-          // Загрузка Argon2 если еще не загружен
-          await loadArgon2Module();
-        }
-        
-        const master = masterPassword;
-        const service = decryptedSettings.service;
-        const account = decryptedSettings.account || "default";
-        const device = decryptedSettings.device || "default";
-        const version = decryptedSettings.version || "00";
-        
-        const salt = service + ":" + account + ":" + device + ":" + version;
-        
-        // Функции для работы с Argon2 (скопированы из Generator.js)
-        const getCharset = () => {
-          let chars = '';
-          if (decryptedSettings.lowercase) chars += 'abcdefghijkmnpqrstuvwxyz';
-          if (decryptedSettings.uppercase) chars += 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-          if (decryptedSettings.digits) chars += '23456789';
-          if (decryptedSettings.symbols) chars += '!@#$%&';
-          return chars;
-        };
-        
-        const stringToBytes = (str) => new TextEncoder().encode(str);
-        const hashToPassword = (hash, length, charset) => 
-          Array.from(hash).slice(0, length).map(b => charset[b % charset.length]).join('');
-        
-        const charset = getCharset();
-        const length = parseInt(decryptedSettings.length) || 16;
-        
-        let mod = window.Module;
-        let pwdBytes = stringToBytes(master);
-        let saltBytes = stringToBytes(salt);
-        let pwdPtr = mod._malloc(pwdBytes.length);
-        let saltPtr = mod._malloc(saltBytes.length);
-        let hashPtr = mod._malloc(32);
-        let encodedPtr = mod._malloc(512);
-
-        new Uint8Array(mod.HEAPU8.buffer, pwdPtr, pwdBytes.length).set(pwdBytes);
-        new Uint8Array(mod.HEAPU8.buffer, saltPtr, saltBytes.length).set(saltBytes);
-
-        const result = mod._argon2_hash(
-          3, 65536, 1,
-          pwdPtr, pwdBytes.length,
-          saltPtr, saltBytes.length,
-          hashPtr, 32,
-          encodedPtr, 512,
-          2, 0x13
-        );
-
-        if (result !== 0) {
-          throw new Error("Ошибка генерации: " + result);
-        }
-
-        const hash = new Uint8Array(mod.HEAPU8.buffer, hashPtr, 32);
-        const password = hashToPassword(hash, length, charset);
-        
-        // Отображаем результат
-        setGeneratedPassword(password);
-        setShowGeneratedPasswordModal(true);
-        setShowPasswordModal(false);
-        
-        // Освобождаем память
-        mod._free(pwdPtr);
-        mod._free(saltPtr);
-        mod._free(hashPtr);
-        mod._free(encodedPtr);
-      }
-      
-      // В любом случае очищаем пароль
-      setMasterPassword("");
-    } catch (err) {
-      alert("Неверный мастер-пароль или поврежденные данные");
-      console.error("Error decrypting:", err);
-    }
-  };
-
-  // Функция для загрузки модуля Argon2
+  // --- Функция loadArgon2Module остается без изменений ---
   const loadArgon2Module = () => {
     return new Promise((resolve, reject) => {
       if (window.Module?.isReady) {
         resolve();
         return;
       }
-      
+
       const script = document.createElement("script");
       script.src = "/argon2.js";
       script.async = true;
@@ -199,21 +104,153 @@ export default function SavedPasswords() {
     });
   };
 
-  // Группировка паролей по сервису
+  // Модифицированная функция decryptAndUse
+  const decryptAndUse = async (redirect = false) => { // По умолчанию false (показать пароль)
+    if (!masterPassword) {
+      alert("Пожалуйста, введите мастер-пароль");
+      return;
+    }
+    if (!selectedEntry) {
+        console.error("Нет выбранной записи для расшифровки.");
+        alert("Произошла ошибка: запись не выбрана.");
+        return;
+    }
+
+    try {
+      const salt = selectedEntry.name; // Используем имя как соль для шифрования настроек
+      const key = CryptoJS.PBKDF2(masterPassword, salt, {
+        keySize: 256 / 32,
+        iterations: 1000
+      });
+
+      const bytes = CryptoJS.AES.decrypt(selectedEntry.encryptedData, key.toString());
+      const decryptedString = bytes.toString(CryptoJS.enc.Utf8);
+      if (!decryptedString) {
+          throw new Error("Не удалось расшифровать данные. Возможно, неверный мастер-пароль.");
+      }
+      const decryptedSettings = JSON.parse(decryptedString);
+
+      // Закрываем модальное окно ввода пароля *перед* выполнением действия
+      setShowPasswordModal(false);
+
+      if (redirect) {
+        // Переход на редактор
+        localStorage.setItem("passwordSettings", JSON.stringify(decryptedSettings));
+        localStorage.setItem("editingEntryId", selectedEntry._id); // Сохраняем ID для редактирования
+        localStorage.setItem("editingEntryName", selectedEntry.name); // Сохраняем имя для редактирования
+        router.push("/editor");
+      } else {
+        // Генерация пароля без перехода
+        setLoading(true); // Показываем индикатор загрузки на время генерации
+        if (!window.Module || !window.Module.isReady) {
+          try {
+            await loadArgon2Module();
+          } catch (loadErr) {
+             setError("Ошибка загрузки модуля Argon2.");
+             console.error("Argon2 load error:", loadErr);
+             setLoading(false);
+             // Не очищаем пароль здесь, чтобы пользователь мог попробовать еще раз
+             setShowPasswordModal(true); // Снова показываем окно ввода пароля
+             return;
+          }
+        }
+
+        const master = masterPassword;
+        const service = decryptedSettings.service;
+        const account = decryptedSettings.account || "default";
+        const device = decryptedSettings.device || "default";
+        const version = decryptedSettings.version || "00";
+
+        const argonSalt = service + ":" + account + ":" + device + ":" + version;
+
+        const getCharset = () => {
+          let chars = '';
+          if (decryptedSettings.lowercase) chars += 'abcdefghijkmnpqrstuvwxyz';
+          if (decryptedSettings.uppercase) chars += 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+          if (decryptedSettings.digits) chars += '23456789';
+          if (decryptedSettings.symbols) chars += '!@#$%&';
+          return chars || 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%&'; // Фоллбэк
+        };
+
+        const stringToBytes = (str) => new TextEncoder().encode(str);
+        const hashToPassword = (hash, length, charset) =>
+          Array.from(hash).slice(0, length).map(b => charset[b % charset.length]).join('');
+
+        const charset = getCharset();
+        const length = parseInt(decryptedSettings.length) || 16;
+
+        let mod = window.Module;
+        let pwdBytes = stringToBytes(master);
+        let saltBytes = stringToBytes(argonSalt); // Используем argonSalt
+        let pwdPtr = 0, saltPtr = 0, hashPtr = 0, encodedPtr = 0;
+
+        try {
+            pwdPtr = mod._malloc(pwdBytes.length);
+            saltPtr = mod._malloc(saltBytes.length);
+            hashPtr = mod._malloc(32); // Argon2 output size
+            encodedPtr = mod._malloc(512); // Buffer for encoded hash string (optional)
+
+            new Uint8Array(mod.HEAPU8.buffer, pwdPtr, pwdBytes.length).set(pwdBytes);
+            new Uint8Array(mod.HEAPU8.buffer, saltPtr, saltBytes.length).set(saltBytes);
+
+            const result = mod._argon2_hash(
+              3, // t_cost (iterations)
+              65536, // m_cost (memory in KiB)
+              1, // parallelism
+              pwdPtr, pwdBytes.length,
+              saltPtr, saltBytes.length,
+              hashPtr, 32,       // Raw hash output
+              encodedPtr, 512, // Encoded string output (not strictly needed here)
+              2, // Argon2id
+              0x13 // Argon2 version 1.3
+            );
+
+            if (result !== 0) {
+              throw new Error("Ошибка генерации Argon2 хеша: код " + result);
+            }
+
+            const hash = new Uint8Array(mod.HEAPU8.buffer.slice(hashPtr, hashPtr + 32)); // Копируем хеш
+            const password = hashToPassword(hash, length, charset);
+
+            setGeneratedPassword(password);
+            setShowGeneratedPasswordModal(true); // Показываем модальное окно с паролем
+
+        } finally {
+            // Освобождаем память C++
+            if(pwdPtr) mod._free(pwdPtr);
+            if(saltPtr) mod._free(saltPtr);
+            if(hashPtr) mod._free(hashPtr);
+            if(encodedPtr) mod._free(encodedPtr);
+            setLoading(false); // Скрываем индикатор загрузки
+        }
+      }
+
+      // Очищаем мастер-пароль после успешной операции
+      setMasterPassword("");
+
+    } catch (err) {
+      alert("Неверный мастер-пароль или ошибка данных: " + err.message);
+      console.error("Error decrypting/generating:", err);
+      // Не очищаем пароль при ошибке, чтобы пользователь мог попробовать снова
+       // Если окно уже было закрыто, снова его покажем
+       if (!redirect) {
+           setShowPasswordModal(true);
+       }
+    } finally {
+       setLoading(false); // Убедимся, что индикатор скрыт
+    }
+  };
+
+  // --- Группировка и фильтрация остаются без изменений ---
   const groupedEntries = entries.reduce((groups, entry) => {
-    // Попытаемся извлечь имя сервиса из имени записи
-    let serviceName = entry.name;
-    
-    // Проверяем, есть ли вообще группа для этого сервиса
+    let serviceName = entry.name; // Используем имя записи как ключ группы
     if (!groups[serviceName]) {
       groups[serviceName] = [];
     }
-    
     groups[serviceName].push(entry);
     return groups;
   }, {});
 
-  // Фильтрация по поисковому запросу
   const filteredGroups = Object.keys(groupedEntries)
     .filter(service => service.toLowerCase().includes(searchTerm.toLowerCase()))
     .reduce((obj, key) => {
@@ -221,7 +258,7 @@ export default function SavedPasswords() {
       return obj;
     }, {});
 
-  if (loading) return <div className="container"><p>Загрузка сохраненных паролей...</p></div>;
+  if (loading) return <div className="container"><p>Загрузка...</p></div>; // Изменено сообщение
 
   return (
     <>
@@ -232,49 +269,49 @@ export default function SavedPasswords() {
       <div className="container">
         <div className="card">
           <h1>Мои пароли</h1>
-          
+
           {error && <div className="error-message">{error}</div>}
-          
+
           <div className="search-container">
-            <input 
-              type="text" 
-              placeholder="Поиск..." 
+            <input
+              type="text"
+              placeholder="Поиск..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
             />
           </div>
-          
+
           {entries.length === 0 ? (
             <p>У вас пока нет сохраненных паролей</p>
           ) : (
             <div className="entries-list">
-              {Object.keys(filteredGroups).map(service => (
+              {Object.keys(filteredGroups).sort((a, b) => a.localeCompare(b)).map(service => ( // Сортировка по имени сервиса
+                // Используем имя записи как ключ группы и заголовок
                 <div key={service} className="entry-group">
-                  <div className="service-name">{service}</div>
+                  {/* <div className="service-name">{service}</div> */} {/* Можно убрать, если имя записи = имя сервиса */}
                   {filteredGroups[service].map(entry => (
                     <div key={entry._id} className="entry-item">
                       <div className="entry-info">
                         <div className="entry-name">{entry.name}</div>
-                        {/* Здесь мы можем показать дополнительную информацию, но она зашифрована */}
                       </div>
                       <div className="entry-actions">
-                        <button 
-                          className="action-btn password-btn" 
+                        <button
+                          className="action-btn password-btn"
                           onClick={() => generatePasswordForEntry(entry)}
                           title="Получить пароль"
                         >
                           Пароль
                         </button>
-                        <button 
-                          className="action-btn edit-btn" 
-                          onClick={() => handleUseEntry(entry)}
+                        <button
+                          className="action-btn edit-btn"
+                          onClick={() => handleUseEntry(entry)} // Теперь эта кнопка тоже открывает окно ввода пароля
                           title="Редактировать параметры"
                         >
                           Редактировать
                         </button>
-                        <button 
-                          className="action-btn delete-btn" 
+                        <button
+                          className="action-btn delete-btn"
                           onClick={() => handleDelete(entry._id)}
                           title="Удалить"
                         >
@@ -288,83 +325,120 @@ export default function SavedPasswords() {
             </div>
           )}
         </div>
-        
-        <button 
+
+        <button
           className="fab-button"
-          onClick={() => router.push("/editor")}
+          onClick={() => {
+             localStorage.removeItem("passwordSettings"); // Очищаем настройки перед созданием новой записи
+             localStorage.removeItem("editingEntryId");
+             localStorage.removeItem("editingEntryName");
+             router.push("/editor");
+            }}
         >
           +
         </button>
-        
-        {/* Модальное окно для ввода мастер-пароля */}
-        {showPasswordModal && (
+
+        {/* === НАЧАЛО: Измененное Модальное окно для ввода мастер-пароля === */}
+        {showPasswordModal && selectedEntry && ( // Добавлена проверка selectedEntry
           <div className="modal-overlay">
-            <div className="modal-content">
-              <h2>Введите мастер-пароль</h2>
-              <p>Для получения пароля для "{selectedEntry.name}" введите мастер-пароль:</p>
-              
+            <div className="modal-content master-password-modal"> {/* Добавлен класс master-password-modal */}
+              <button
+                className="modal-close-btn"
+                onClick={() => {
+                  setShowPasswordModal(false);
+                  setMasterPassword(""); // Очищаем пароль при закрытии
+                }}
+                aria-label="Закрыть" // Для доступности
+              >
+                × {/* HTML entity for 'X' */}
+              </button>
+
+              {/* Заголовок и текст удалены */}
+
               <div className="form-group password-input-container">
-                <input 
+                <input
                   type={showPassword ? "text" : "password"}
                   value={masterPassword}
                   onChange={(e) => setMasterPassword(e.target.value)}
                   placeholder="Мастер-пароль"
+                  // Добавляем обработчик нажатия Enter
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      // По Enter пытаемся получить пароль (не редактировать)
+                      decryptAndUse(false);
+                    }
+                  }}
+                  autoFocus // Автофокус на поле ввода при открытии
                 />
-                <button 
-                  className="toggle-password-btn" 
+                <button
+                  type="button" // Важно для предотвращения отправки формы, если она есть
+                  className="toggle-password-btn"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"} // Для доступности
                 >
                   {showPassword ? "👁️" : "👁️‍🗨️"}
                 </button>
               </div>
-              
+
               <div className="modal-actions">
-                <button className="cancel-btn" onClick={() => {
-                  setShowPasswordModal(false);
-                  setMasterPassword("");
-                }}>
-                  Отмена
+                {/* Кнопка "Отмена" удалена */}
+                <button
+                  className="confirm-btn password-action-btn" // Добавлен класс password-action-btn
+                  onClick={() => decryptAndUse(false)} // false -> показать пароль
+                  disabled={loading} // Блокируем кнопку во время загрузки
+                >
+                  {loading ? 'Генерация...' : 'Пароль'}
                 </button>
-                <button className="confirm-btn" onClick={() => decryptAndUse(false)}>
-                  Показать пароль
-                </button>
-                <button className="edit-btn" onClick={() => decryptAndUse(true)}>
+                <button
+                  className="edit-btn password-action-btn" // Добавлен класс password-action-btn
+                  onClick={() => decryptAndUse(true)} // true -> редактировать
+                  disabled={loading} // Блокируем кнопку во время загрузки
+                >
                   Редактировать
                 </button>
               </div>
             </div>
           </div>
         )}
-        
-        {/* Модальное окно для отображения сгенерированного пароля */}
+        {/* === КОНЕЦ: Измененное Модальное окно для ввода мастер-пароля === */}
+
+
+        {/* Модальное окно для отображения сгенерированного пароля (без изменений) */}
         {showGeneratedPasswordModal && (
           <div className="modal-overlay">
             <div className="modal-content">
               <h2>Ваш пароль</h2>
-              
+
               <div className="password-result-container">
-                <input 
-                  type="text" 
-                  readOnly 
+                <input
+                  type="text"
+                  readOnly
                   value={generatedPassword}
                   className="password-result"
+                  id="generatedPasswordInput" // Добавим ID для легкого доступа
                 />
-                <button 
-                  className="copy-btn" 
+                <button
+                  className="copy-btn"
                   onClick={() => {
-                    navigator.clipboard.writeText(generatedPassword);
-                    // Показываем всплывающее сообщение об успешном копировании
-                    alert("Пароль скопирован в буфер обмена");
+                    const passwordInput = document.getElementById('generatedPasswordInput');
+                    passwordInput.select(); // Выделяем текст для мобильных устройств
+                    navigator.clipboard.writeText(generatedPassword).then(() => {
+                      alert("Пароль скопирован в буфер обмена");
+                    }).catch(err => {
+                      console.error('Ошибка копирования:', err);
+                      alert('Не удалось скопировать пароль.');
+                    });
                   }}
+                  aria-label="Скопировать пароль" // Для доступности
                 >
                   ⧉
                 </button>
               </div>
-              
+
               <div className="modal-actions">
                 <button className="confirm-btn" onClick={() => {
                   setShowGeneratedPasswordModal(false);
-                  setGeneratedPassword("");
+                  setGeneratedPassword(""); // Очищаем сгенерированный пароль
                 }}>
                   Закрыть
                 </button>
@@ -372,6 +446,7 @@ export default function SavedPasswords() {
             </div>
           </div>
         )}
+
       </div>
     </>
   );
