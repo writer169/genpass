@@ -49,8 +49,65 @@ h1 {
   font-weight: 700;
 }
 
+.header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--primary);
+  cursor: pointer;
+  margin-right: 10px;
+  padding: 0 5px;
+  line-height: 1;
+}
+
+.back-btn:hover {
+  color: var(--primary-dark);
+}
+
+.search-container {
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
 .entries-list {
   margin: 20px 0;
+}
+
+.entry-group {
+  margin-bottom: 15px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+}
+
+.service-name {
+  background-color: var(--light-bg);
+  padding: 8px 15px;
+  font-weight: bold;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
 }
 
 .entry-item {
@@ -58,7 +115,7 @@ h1 {
   justify-content: space-between;
   align-items: center;
   padding: 12px 15px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border);
 }
 
 .entry-item:last-child {
@@ -67,21 +124,24 @@ h1 {
 
 .entry-info {
   flex: 1;
+  margin-right: 15px; /* Added margin from first snippet merge */
 }
 
 .entry-name {
   font-weight: 500;
   font-size: 14px;
+  color: var(--text); /* Ensured color consistency */
 }
 
 .entry-detail {
   font-size: 12px;
-  color: #666;
+  color: var(--text-muted); /* Use variable */
 }
 
 .entry-actions {
   display: flex;
   gap: 8px;
+  flex-shrink: 0; /* Added from first snippet merge */
 }
 
 .action-btn {
@@ -91,6 +151,26 @@ h1 {
   cursor: pointer;
   border: none;
   transition: all 0.2s;
+}
+
+.password-btn {
+  background-color: var(--success); /* Use variable */
+  color: white;
+  padding: 6px 12px; /* Style from first snippet */
+  font-size: 0.85rem; /* Style from first snippet */
+}
+.password-btn:hover {
+   background-color: #218838; /* Darker success from first snippet */
+}
+
+.edit-btn { /* Style for list edit button */
+  background-color: var(--primary); /* Use variable */
+  color: white;
+  padding: 6px 12px; /* Style from first snippet */
+  font-size: 0.85rem; /* Style from first snippet */
+}
+.edit-btn:hover {
+  background-color: var(--primary-dark); /* Use variable */
 }
 
 .use-btn {
@@ -113,6 +193,17 @@ h1 {
   cursor: pointer;
   transition: all 0.2s;
 }
+.delete-btn:hover {
+    background-color: #c82333; /* Darker danger color */
+    border-color: #bd2130; /* Consistent border */
+}
+
+.trash-icon {
+  font-size: 1.1em; /* From first snippet */
+  display: inline-block; /* From first snippet */
+  vertical-align: middle; /* From first snippet */
+}
+
 
 .button-group {
   display: flex;
@@ -144,9 +235,9 @@ h1 {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  width: 100%; /* Use width/height or right/bottom */
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6); /* Opacity from first snippet */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -156,9 +247,70 @@ h1 {
 .modal-content {
   background: var(--card-bg);
   border-radius: var(--radius);
-  padding: 20px;
-  max-width: 90%;
-  width: 400px;
+  padding: 25px 30px; /* Padding from first snippet */
+  max-width: 450px; /* Max-width from first snippet */
+  width: 90%; /* Responsive width */
+  position: relative; /* Needed for close button positioning */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Shadow from first snippet */
+  animation: fadeInModal 0.3s ease-out; /* Animation from first snippet */
+}
+
+@keyframes fadeInModal {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 2.2rem;
+  color: #aaa;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  font-weight: bold;
+}
+
+.modal-close-btn:hover {
+  color: #333;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.modal-actions button {
+  padding: 10px 20px;
+  border-radius: var(--radius-md); /* Use variable */
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.modal-actions .confirm-btn {
+  background-color: var(--success); /* Use variable */
+  color: white;
+}
+.modal-actions .confirm-btn:hover {
+  background-color: #218838; /* Darker green */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+
+.modal-actions .edit-btn { /* Style for modal edit button */
+  background-color: var(--primary); /* Use variable */
+  color: white;
+}
+.modal-actions .edit-btn:hover {
+  background-color: var(--primary-dark); /* Use variable */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
 }
 
 .form-group {
@@ -197,6 +349,78 @@ h1 {
   min-height: 60px;
 }
 
+/* Container specifically for master password in modal (from first snippet) */
+.password-input-container {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+/* Master password input field style (from first snippet) */
+.master-password-input {
+  width: 100%;
+  padding: 12px 40px 12px 15px;
+  border: 1px solid var(--border); /* Use variable */
+  border-radius: var(--radius-md); /* Use variable */
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+/* Inline toggle button for master password (from first snippet) */
+.toggle-password-btn-inline {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted); /* Use variable */
+}
+
+.toggle-password-btn-inline svg {
+   display: block;
+}
+
+.toggle-password-btn-inline:hover {
+    color: var(--text); /* Use variable */
+}
+
+/* General password toggle for forms (from second snippet) */
+.form-group .password-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-input-container input[type="password"],
+.password-input-container input[type="text"] {
+  padding-right: 40px;
+}
+
+.toggle-password-btn {
+  position: absolute;
+  right: 0px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--text-muted);
+  padding: 0 10px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+.toggle-password-btn:hover {
+    color: var(--text);
+}
+
 .row {
   display: flex;
   gap: 10px;
@@ -231,6 +455,7 @@ h1 {
   font-size: 14px;
 }
 
+/* Result container for generated password */
 .result-container {
   position: relative;
   width: 100%;
@@ -263,6 +488,58 @@ h1 {
   color: var(--text);
 }
 
+/* Container for displaying password result in modal (from first snippet) */
+.password-result-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  background-color: var(--light-bg); /* Use variable */
+  border: 1px solid var(--border); /* Use variable */
+  border-radius: var(--radius-md); /* Use variable */
+  padding: 5px 10px;
+}
+
+/* Field for displaying password result in modal (from first snippet) */
+.password-result {
+  flex-grow: 1;
+  padding: 8px 10px;
+  border: none;
+  background-color: transparent;
+  font-size: 1.1rem;
+  font-family: monospace;
+  color: var(--text); /* Use variable */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all; /* Added */
+}
+
+/* Icon button style for copy button in modal (from first snippet) */
+.copy-btn.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary); /* Use variable */
+  border-radius: var(--radius-sm); /* Use variable */
+  transition: background-color 0.2s ease;
+  position: static; /* Override absolute positioning from base .copy-btn */
+  transform: none; /* Override transform from base .copy-btn */
+}
+
+.copy-btn.icon-btn:hover {
+  color: var(--primary-dark); /* Use variable */
+  background-color: rgba(79, 70, 229, 0.1); /* Primary color with alpha */
+}
+
+.copy-btn.icon-btn svg {
+  display: block;
+}
+
+
 button.generate {
   width: 100%;
   padding: 12px;
@@ -284,6 +561,37 @@ button.generate:hover {
 button.generate:disabled {
   background: var(--text-muted);
   cursor: not-allowed;
+}
+
+.reset-btn {
+  background-color: var(--text-muted); /* Use variable */
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 10px 15px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.reset-btn:hover {
+  background-color: #4a5568; /* Darker shade of text-muted */
+}
+
+.button-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.button-row .generate {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.button-row .reset-btn {
+  flex-shrink: 0;
 }
 
 .status {
@@ -319,6 +627,35 @@ button.generate:disabled {
   background: var(--border);
 }
 
+.fab-button {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 56px; /* Size from first snippet */
+  height: 56px; /* Size from first snippet */
+  border-radius: 50%;
+  background-color: var(--primary); /* Use variable */
+  color: white;
+  font-size: 2rem; /* Size from first snippet */
+  border: none;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  z-index: 999;
+}
+.fab-button:hover {
+  background-color: var(--primary-dark); /* Use variable */
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Enhanced shadow on hover */
+}
+.fab-button:active {
+  transform: scale(0.98);
+}
+
 @media (max-width: 480px) {
   .container {
     padding: 8px;
@@ -343,369 +680,30 @@ button.generate:disabled {
 
   .modal-content {
       width: 90%;
+      padding: 20px 15px; /* Adjust padding for smaller screens */
   }
-}
 
-.search-container {
-  margin-bottom: 20px;
-  width: 100%;
-}
+  .modal-actions {
+      gap: 8px; /* Reduce gap */
+  }
+  .modal-actions button {
+      padding: 8px 15px; /* Smaller padding */
+      font-size: 0.9rem; /* Slightly smaller font */
+  }
 
-.search-input {
-  width: 100%;
-  padding: 10px 15px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  font-size: 16px;
-  transition: border 0.2s, box-shadow 0.2s;
-}
-.search-input:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
-}
+  .entry-actions {
+      gap: 5px; /* Reduce gap */
+  }
 
-.entry-group {
-  margin-bottom: 15px;
-  border: 1px solid #eee;
-  border-radius: var(--radius);
-  overflow: hidden;
-  background: var(--card-bg);
-  box-shadow: var(--shadow);
-}
+  .action-btn {
+      padding: 4px 8px; /* Smaller padding */
+      font-size: 13px; /* Adjust font size */
+  }
 
-.service-name {
-  background-color: var(--light-bg);
-  padding: 8px 15px;
-  font-weight: bold;
-  border-bottom: 1px solid #eee;
-  color: var(--text);
-}
+   .delete-btn {
+      width: 28px; /* Smaller delete button */
+      height: 28px;
+      font-size: 14px;
+  }
 
-.password-btn {
-  background-color: #4CAF50;
-  color: white;
-}
-
-.edit-btn {
-  background-color: #2196F3;
-  color: white;
-}
-
-.trash-icon {
-  font-size: 16px;
-}
-
-.fab-button {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background-color: #FF9800;
-  color: white;
-  font-size: 30px;
-  border: none;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  cursor: pointer;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-
-.fab-button:hover {
-  background-color: #F57C00;
-  transform: scale(1.05);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.back-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: var(--primary);
-  cursor: pointer;
-  margin-right: 10px;
-  padding: 0 5px;
-  line-height: 1;
-}
-
-.back-btn:hover {
-  color: var(--primary-dark);
-}
-
-.form-group .password-input-container {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 100%;
-}
-
-.form-group .password-input-container input[type="password"],
-.form-group .password-input-container input[type="text"] {
-  width: 100%;
-  padding-right: 40px;
-}
-
-.form-group .toggle-password-btn {
-  position: absolute;
-  right: 0px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 18px;
-  color: var(--text-muted);
-  padding: 0 10px;
-  height: 100%;
-  display: flex;
-  align-items: center;
-}
-.form-group .toggle-password-btn:hover {
-    color: var(--text);
-}
-
-.reset-btn {
-  background-color: #9E9E9E;
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  padding: 10px 15px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.2s;
-}
-
-.reset-btn:hover {
-  background-color: #757575;
-}
-
-.button-row {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.button-row .generate {
-  flex: 1;
-  margin-bottom: 0;
-}
-
-.button-row .reset-btn {
-  flex-shrink: 0;
-}
-
-.modal-content.master-password-modal {
-  background-color: var(--card-bg);
-  border-radius: var(--radius);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  width: 90%;
-  max-width: 400px;
-  box-sizing: border-box;
-  position: relative;
-  padding: 45px 25px 25px 25px;
-  min-width: 300px;
-  text-align: center;
-}
-
-.modal-close-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: none;
-  font-size: 2rem;
-  font-weight: bold;
-  line-height: 1;
-  color: #aaa;
-  cursor: pointer;
-  padding: 5px;
-  transition: color 0.2s ease;
-}
-
-.modal-close-btn:hover {
-  color: #333;
-}
-
-.master-password-modal .password-input-container {
-  display: flex;
-  align-items: center;
-  margin-bottom: 25px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  background-color: var(--card-bg);
-}
-
-.master-password-modal .password-input-container input[type="password"],
-.master-password-modal .password-input-container input[type="text"] {
-  flex-grow: 1;
-  padding: 12px 15px;
-  border: none;
-  outline: none;
-  font-size: 1rem;
-  background-color: transparent;
-  color: var(--text);
-}
-
-.master-password-modal .toggle-password-btn {
-  background: none;
-  border: none;
-  padding: 0 15px;
-  cursor: pointer;
-  font-size: 1.2rem;
-  color: var(--text-muted);
-  align-self: stretch;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-left: 1px solid var(--border);
-  background-color: var(--light-bg);
-  transition: background-color 0.2s ease;
-}
-
-.master-password-modal .toggle-password-btn:hover {
-  background-color: var(--border);
-}
-
-.master-password-modal .modal-actions {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-top: 10px;
-}
-
-.password-action-btn {
-  padding: 12px 20px;
-  font-size: 1rem;
-  border: none;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: background-color 0.2s ease, opacity 0.2s ease;
-  flex-grow: 1;
-  max-width: 180px;
-  font-weight: 500;
-}
-
-.password-action-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.master-password-modal .confirm-btn {
-  background-color: var(--primary);
-  color: white;
-}
-
-.master-password-modal .confirm-btn:hover:not(:disabled) {
-  background-color: var(--primary-dark);
-}
-
-.master-password-modal .edit-btn {
-  background-color: var(--text-muted);
-  color: white;
-}
-
-.master-password-modal .edit-btn:hover:not(:disabled) {
-  background-color: #4a5568;
-}
-
-.password-result-container {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  background-color: var(--light-bg);
-  width: 100%;
-  position: relative;
-}
-
-.password-result {
-  flex-grow: 1;
-  padding: 12px 15px;
-  font-size: 1.1rem;
-  font-family: 'Courier New', Courier, monospace;
-  border: none;
-  background-color: transparent;
-  color: var(--text);
-  outline: none;
-  word-break: break-all;
-}
-
-.password-result-container .copy-btn {
-  position: static;
-  transform: none;
-  height: auto;
-  align-self: stretch;
-  background-color: var(--light-bg);
-  border: none;
-  border-left: 1px solid var(--border);
-  padding: 0 15px;
-  cursor: pointer;
-  font-size: 1.5rem;
-  color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s ease, color 0.2s ease;
-  border-radius: 0;
-  flex-shrink: 0;
-}
-
-.password-result-container .copy-btn:hover {
-  background-color: var(--border);
-  color: var(--text);
-}
-
-.modal-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  margin-top: 15px;
-}
-
-.modal-actions .confirm-btn,
-.modal-actions .cancel-btn {
-   padding: 10px 20px;
-   border-radius: var(--radius-md);
-   cursor: pointer;
-   font-weight: 500;
-   border: none;
-   transition: background-color 0.2s ease, opacity 0.2s ease;
-}
-
-.modal-actions .confirm-btn {
-    background-color: var(--primary);
-    color: white;
-}
-.modal-actions .confirm-btn:hover:not(:disabled) {
-    background-color: var(--primary-dark);
-}
-
-.modal-actions .cancel-btn {
-    background-color: var(--light-bg);
-    color: var(--text);
-    border: 1px solid var(--border);
-}
-.modal-actions .cancel-btn:hover:not(:disabled) {
-    background-color: var(--border);
-}
-
-.modal-actions .confirm-btn:disabled,
-.modal-actions .cancel-btn:disabled {
-     opacity: 0.6;
-     cursor: not-allowed;
 }
