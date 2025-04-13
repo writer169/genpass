@@ -353,6 +353,7 @@ h1 {
 .password-input-container {
   position: relative;
   margin-bottom: 20px;
+  margin-top: 15px;
 }
 
 /* Master password input field style (from first snippet) */
