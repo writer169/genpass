@@ -61,14 +61,7 @@ export default function SavedPasswords() {
     }
   };
 
-  const handleUseEntry = (entry) => {
-    setSelectedEntry(entry);
-    setMasterPassword("");
-    setShowPassword(false);
-    setShowPasswordModal(true);
-  };
-
-  const generatePasswordForEntry = async (entry) => {
+  const handleSelectEntry = (entry) => {
     setSelectedEntry(entry);
     setMasterPassword("");
     setShowPassword(false);
@@ -236,7 +229,15 @@ export default function SavedPasswords() {
       document.body.appendChild(script);
     });
   };
+  
+  // Функция для извлечения идентификатора аккаунта из зашифрованных данных
+  // (мы не можем этого сделать без мастер-пароля, поэтому просто используем индекс)
+  const getEntryDisplayName = (entry, index) => {
+    // В будущем можно будет добавить расшифровку и показ имени аккаунта
+    return `Запись ${index + 1}`;
+  };
 
+  // Группировка записей по имени сервиса
   const groupedEntries = entries.reduce((groups, entry) => {
     let serviceName = entry.name || "Без имени";
     if (!groups[serviceName]) {
@@ -246,25 +247,26 @@ export default function SavedPasswords() {
     return groups;
   }, {});
 
+  // Фильтрация групп по поисковому запросу
   const filteredGroups = Object.keys(groupedEntries)
     .filter(service => service.toLowerCase().includes(searchTerm.toLowerCase()))
-    .sort() // Sort service names alphabetically
+    .sort() // Сортировка имен сервисов по алфавиту
     .reduce((obj, key) => {
       obj[key] = groupedEntries[key];
       return obj;
     }, {});
 
-   const closeMasterPasswordModal = () => {
-      setShowPasswordModal(false);
-      setMasterPassword("");
-      setShowPassword(false);
-      setSelectedEntry(null); // Clear selected entry when closing
+  const closeMasterPasswordModal = () => {
+    setShowPasswordModal(false);
+    setMasterPassword("");
+    setShowPassword(false);
+    setSelectedEntry(null); // Очистка выбранной записи при закрытии
   };
 
   const closeGeneratedPasswordModal = () => {
-      setShowGeneratedPasswordModal(false);
-      setGeneratedPassword("");
-      // We keep selectedEntry potentially if user wants to re-generate or edit right after
+    setShowGeneratedPasswordModal(false);
+    setGeneratedPassword("");
+    // Сохраняем selectedEntry на случай, если пользователь захочет повторно сгенерировать или отредактировать
   };
 
   if (loading) return <div className="container"><p>Загрузка сохраненных паролей...</p></div>;
@@ -273,7 +275,6 @@ export default function SavedPasswords() {
     <>
       <Head>
         <title>Менеджер паролей</title>
-        {/* Ensure styles.css includes the new styles below */}
         <link rel="stylesheet" href="/styles.css" />
       </Head>
       <div className="container">
@@ -299,36 +300,30 @@ export default function SavedPasswords() {
               {Object.keys(filteredGroups).map(service => (
                 <div key={service} className="entry-group">
                   <div className="service-name">{service}</div>
-                  {filteredGroups[service].map(entry => (
-                    <div key={entry._id} className="entry-item">
-                      <div className="entry-info">
-                        <div className="entry-name">{entry.name}</div>
-                      </div>
-                      <div className="entry-actions">
-                        <button
-                          className="action-btn password-btn"
-                          onClick={() => generatePasswordForEntry(entry)}
-                          title="Получить пароль"
+                  <div className="entries-container">
+                    {filteredGroups[service].map((entry, index) => (
+                      <div key={entry._id} className="entry-card">
+                        <div 
+                          className="entry-card-content" 
+                          onClick={() => handleSelectEntry(entry)}
                         >
-                          Пароль
-                        </button>
+                          <div className="entry-card-name">
+                            {getEntryDisplayName(entry, index)}
+                          </div>
+                        </div>
                         <button
-                          className="action-btn edit-btn"
-                          onClick={() => handleUseEntry(entry)}
-                          title="Редактировать параметры"
-                        >
-                          Редактировать
-                        </button>
-                        <button
-                          className="action-btn delete-btn"
-                          onClick={() => handleDelete(entry._id)}
+                          className="delete-circle-btn"
+                          onClick={(e) => {
+                            e.stopPropagation(); // Предотвращаем срабатывание onClick родителя
+                            handleDelete(entry._id);
+                          }}
                           title="Удалить"
                         >
-                          <span className="trash-icon">🗑️</span>
+                          ×
                         </button>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
@@ -338,7 +333,7 @@ export default function SavedPasswords() {
         <button
           className="fab-button"
           onClick={() => {
-            localStorage.removeItem("passwordSettings"); // Clear settings for new entry
+            localStorage.removeItem("passwordSettings"); // Очистка настроек для новой записи
             router.push("/editor");
           }}
         >
@@ -348,11 +343,9 @@ export default function SavedPasswords() {
         {showPasswordModal && selectedEntry && (
           <div className="modal-overlay">
             <div className="modal-content">
-               <button className="modal-close-btn" onClick={closeMasterPasswordModal}>
-                 ×
-               </button>
-
-               {/* Заголовок и текст убраны */}
+              <button className="modal-close-btn" onClick={closeMasterPasswordModal}>
+                ×
+              </button>
 
               <div className="form-group password-input-container">
                 <input
@@ -360,27 +353,25 @@ export default function SavedPasswords() {
                   value={masterPassword}
                   onChange={(e) => setMasterPassword(e.target.value)}
                   placeholder="Мастер-пароль"
-                  className="master-password-input" // Added specific class for styling
-                   onKeyPress={(e) => { if (e.key === 'Enter') decryptAndUse(false); }} // Optional: Submit on Enter
+                  className="master-password-input"
+                  onKeyPress={(e) => { if (e.key === 'Enter') decryptAndUse(false); }}
                 />
                 <button
-                  type="button" // Prevent form submission if wrapped in form
-                  className="toggle-password-btn-inline" // New class for inline eye
+                  type="button"
+                  className="toggle-password-btn-inline"
                   onClick={() => setShowPassword(!showPassword)}
                   title={showPassword ? "Скрыть пароль" : "Показать пароль"}
                 >
-                  {/* Используем SVG для более четкой иконки */}
-                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                      {showPassword
-                       ? <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm0-1.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm0-6.5C6.48 7 2 11.82 2 12s4.48 5 10 5 10-4.82 10-5-4.48-5-10-5Zm0 8.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5Z"/>
-                       : <path d="M12 7c-3.78 0-7.17 2.13-8.82 5.5C4.83 15.87 8.22 18 12 18s7.17-2.13 8.82-5.5C19.17 9.13 15.78 7 12 7Zm-9.14 4.25c.47-.8 1.09-1.5 1.82-2.06.4-.3.88-.53 1.4-.68-.33.59-.53 1.28-.53 2 0 .72.2 1.41.53 2-.52-.15-1-.38-1.4-.68-.73-.56-1.35-1.26-1.82-2.06C2.84 11.65 2.84 11.35 2.86 11.25Zm18.28 0c.02.1.02.4-.02.5-.47.8-1.09 1.5-1.82 2.06-.4.3-.88.53-1.4.68.33-.59.53-1.28.53-2 0-.72-.2-1.41-.53-2 .52.15 1 .38 1.4.68.73.56 1.35 1.26 1.82 2.06Zm-6.9 2.5c.33-.59.53-1.28.53-2s-.2-1.41-.53-2c1 .35 1.84 1.16 2.32 2.17-.48 1-1.32 1.82-2.32 2.17ZM8.32 11.25c-.48 1-1.32 1.82-2.32 2.17.33-.59.53-1.28.53-2s-.2-1.41-.53-2c1 .35 1.84 1.16 2.32 2.17Z"/>
-                      }
-                   </svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                    {showPassword
+                      ? <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm0-1.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm0-6.5C6.48 7 2 11.82 2 12s4.48 5 10 5 10-4.82 10-5-4.48-5-10-5Zm0 8.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5Z"/>
+                      : <path d="M12 7c-3.78 0-7.17 2.13-8.82 5.5C4.83 15.87 8.22 18 12 18s7.17-2.13 8.82-5.5C19.17 9.13 15.78 7 12 7Zm-9.14 4.25c.47-.8 1.09-1.5 1.82-2.06.4-.3.88-.53 1.4-.68-.33.59-.53 1.28-.53 2 0 .72.2 1.41.53 2-.52-.15-1-.38-1.4-.68-.73-.56-1.35-1.26-1.82-2.06C2.84 11.65 2.84 11.35 2.86 11.25Zm18.28 0c.02.1.02.4-.02.5-.47.8-1.09 1.5-1.82 2.06-.4.3-.88.53-1.4.68.33-.59.53-1.28.53-2 0-.72-.2-1.41-.53-2 .52.15 1 .38 1.4.68.73.56 1.35 1.26 1.82 2.06Zm-6.9 2.5c.33-.59.53-1.28.53-2s-.2-1.41-.53-2c1 .35 1.84 1.16 2.32 2.17-.48 1-1.32 1.82-2.32 2.17ZM8.32 11.25c-.48 1-1.32 1.82-2.32 2.17.33-.59.53-1.28.53-2s-.2-1.41-.53-2c1 .35 1.84 1.16 2.32 2.17Z"/>
+                    }
+                  </svg>
                 </button>
               </div>
 
               <div className="modal-actions">
-                 {/* Кнопка "Отмена" убрана */}
                 <button className="confirm-btn" onClick={() => decryptAndUse(false)}>
                   Пароль
                 </button>
@@ -408,29 +399,18 @@ export default function SavedPasswords() {
                   className="password-result"
                 />
                 <button
-                  className="copy-btn icon-btn" // Added icon-btn class
+                  className="copy-btn icon-btn"
                   onClick={() => {
                     navigator.clipboard.writeText(generatedPassword);
                     alert("Пароль скопирован в буфер обмена");
                   }}
                   title="Копировать пароль"
                 >
-                   {/* Иконка копирования (SVG) */}
-                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                     <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1Zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2Zm0 16H8V7h11v14Z"/>
-                   </svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1Zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2Zm0 16H8V7h11v14Z"/>
+                  </svg>
                 </button>
               </div>
-
-               <div className="modal-actions">
-                 {/* Оставляем пустое, так как закрытие через крестик */}
-                 {/* Если нужна кнопка "Закрыть", раскомментируйте ниже */}
-                 {/*
-                 <button className="confirm-btn" onClick={closeGeneratedPasswordModal}>
-                   Закрыть
-                 </button>
-                 */}
-               </div>
             </div>
           </div>
         )}
