@@ -14,13 +14,14 @@ export default function SavedPasswords() {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showGeneratedPasswordModal, setShowGeneratedPasswordModal] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState("");
+  const [expandedServices, setExpandedServices] = useState({});
   const router = useRouter();
 
   useEffect(() => {
     fetchEntries();
     loadArgon2Module().catch(err => {
-        console.error("Failed to load Argon2 module:", err);
-        setError("Ошибка загрузки модуля Argon2");
+      console.error("Failed to load Argon2 module:", err);
+      setError("Ошибка загрузки модуля Argon2");
     });
   }, []);
 
@@ -33,7 +34,16 @@ export default function SavedPasswords() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      setEntries(data.entries || []);
+      const fetchedEntries = data.entries || [];
+      setEntries(fetchedEntries);
+      
+      // Инициализируем состояние всех сервисов развернутыми по умолчанию
+      const services = {};
+      fetchedEntries.forEach(entry => {
+        const serviceName = extractServiceName(entry.name);
+        services[serviceName] = true; // true = развернут
+      });
+      setExpandedServices(services);
     } catch (err) {
       setError("Ошибка при загрузке сохраненных паролей");
       console.error("Error fetching entries:", err);
@@ -68,6 +78,13 @@ export default function SavedPasswords() {
     setShowPasswordModal(true);
   };
 
+  const toggleServiceExpand = (serviceName) => {
+    setExpandedServices(prev => ({
+      ...prev,
+      [serviceName]: !prev[serviceName]
+    }));
+  };
+
   const decryptAndUse = async (redirect = true) => {
     if (!selectedEntry || !masterPassword) {
       alert("Пожалуйста, выберите запись и введите мастер-пароль");
@@ -84,7 +101,7 @@ export default function SavedPasswords() {
       const decryptedSettingsString = bytes.toString(CryptoJS.enc.Utf8);
 
       if (!decryptedSettingsString) {
-          throw new Error("Decryption resulted in empty data. Check master password or data integrity.");
+        throw new Error("Decryption resulted in empty data. Check master password or data integrity.");
       }
       
       const decryptedSettings = JSON.parse(decryptedSettingsString);
@@ -159,7 +176,7 @@ export default function SavedPasswords() {
             closeMasterPasswordModal(); // Close the master password modal
 
         } finally {
-             // Ensure memory is freed even if errors occur
+            // Ensure memory is freed even if errors occur
             if (pwdPtr && mod && mod._free) mod._free(pwdPtr);
             if (saltPtr && mod && mod._free) mod._free(saltPtr);
             if (hashPtr && mod && mod._free) mod._free(hashPtr);
@@ -230,45 +247,68 @@ export default function SavedPasswords() {
     });
   };
   
-  // Новая функция для извлечения имени сервиса из полного имени записи
+  // Функция для извлечения имени сервиса из полного имени записи
   const extractServiceName = (fullName) => {
     // Извлекаем первую часть имени до первого дефиса или возвращаем всё имя
-    return fullName.split(' - ')[0] || fullName;
+    const parts = fullName.split(' - ');
+    return parts[0] || fullName;
   };
 
-  // Новая функция для извлечения отображаемого имени записи без имени сервиса
-  const getEntryDisplayName = (entry) => {
+  // Функция для извлечения отображаемого имени аккаунта без имени сервиса
+  const getAccountName = (entry) => {
     const fullName = entry.name;
-    const serviceName = extractServiceName(fullName);
+    const parts = fullName.split(' - ');
     
-    // Если имя записи содержит больше информации, чем просто имя сервиса
-    if (fullName.length > serviceName.length) {
-      // Возвращаем часть имени после имени сервиса и разделителя " - "
-      return fullName.substring(serviceName.length + 3); // +3 для " - "
+    // Если имя записи содержит разделитель " - "
+    if (parts.length > 1) {
+      return parts[1]; // Возвращаем часть после первого " - "
     }
     
-    // Если имя записи совпадает с именем сервиса, возвращаем просто имя
-    return serviceName;
+    // Если разделителя нет, возвращаем пустую строку или значение по умолчанию
+    return "Аккаунт";
   };
 
-  // Обновленная группировка записей по имени сервиса
-  const groupedEntries = entries.reduce((groups, entry) => {
-    let serviceName = extractServiceName(entry.name) || "Без имени";
-    if (!groups[serviceName]) {
-      groups[serviceName] = [];
-    }
-    groups[serviceName].push(entry);
+  // Группировка записей по имени сервиса
+  const groupEntriesByService = () => {
+    const groups = {};
+    
+    entries.forEach(entry => {
+      const serviceName = extractServiceName(entry.name);
+      if (!groups[serviceName]) {
+        groups[serviceName] = [];
+      }
+      groups[serviceName].push(entry);
+    });
+    
     return groups;
-  }, {});
+  };
 
   // Фильтрация групп по поисковому запросу
-  const filteredGroups = Object.keys(groupedEntries)
-    .filter(service => service.toLowerCase().includes(searchTerm.toLowerCase()))
-    .sort() // Сортировка имен сервисов по алфавиту
-    .reduce((obj, key) => {
-      obj[key] = groupedEntries[key];
-      return obj;
-    }, {});
+  const getFilteredGroups = () => {
+    const groups = groupEntriesByService();
+    
+    if (!searchTerm) return groups;
+    
+    const filteredGroups = {};
+    Object.keys(groups).forEach(serviceName => {
+      // Проверяем, содержит ли имя сервиса поисковый запрос
+      if (serviceName.toLowerCase().includes(searchTerm.toLowerCase())) {
+        filteredGroups[serviceName] = groups[serviceName];
+        return;
+      }
+      
+      // Проверяем каждую запись в группе
+      const filteredEntries = groups[serviceName].filter(entry => 
+        entry.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      
+      if (filteredEntries.length > 0) {
+        filteredGroups[serviceName] = filteredEntries;
+      }
+    });
+    
+    return filteredGroups;
+  };
 
   const closeMasterPasswordModal = () => {
     setShowPasswordModal(false);
@@ -284,6 +324,9 @@ export default function SavedPasswords() {
   };
 
   if (loading) return <div className="container"><p>Загрузка сохраненных паролей...</p></div>;
+
+  const filteredGroups = getFilteredGroups();
+  const serviceNames = Object.keys(filteredGroups).sort();
 
   return (
     <>
@@ -309,35 +352,48 @@ export default function SavedPasswords() {
 
           {entries.length === 0 && !loading ? (
             <p>У вас пока нет сохраненных паролей</p>
+          ) : serviceNames.length === 0 ? (
+            <p>Ничего не найдено по запросу "{searchTerm}"</p>
           ) : (
             <div className="entries-list">
-              {Object.keys(filteredGroups).map(service => (
-                <div key={service} className="entry-group">
-                  <div className="service-name">{service}</div>
-                  <div className="entries-container">
-                    {filteredGroups[service].map((entry) => (
-                      <div key={entry._id} className="entry-card">
-                        <div 
-                          className="entry-card-content" 
-                          onClick={() => handleSelectEntry(entry)}
-                        >
-                          <div className="entry-card-name">
-                            {getEntryDisplayName(entry)}
-                          </div>
-                        </div>
-                        <button
-                          className="delete-circle-btn"
-                          onClick={(e) => {
-                            e.stopPropagation(); // Предотвращаем срабатывание onClick родителя
-                            handleDelete(entry._id);
-                          }}
-                          title="Удалить"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
+              {serviceNames.map(serviceName => (
+                <div key={serviceName} className="service-group">
+                  <div 
+                    className="service-header" 
+                    onClick={() => toggleServiceExpand(serviceName)}
+                  >
+                    <div className="service-name">
+                      {serviceName}
+                    </div>
+                    <div className="service-expand-icon">
+                      {expandedServices[serviceName] ? '▼' : '►'}
+                    </div>
                   </div>
+                  
+                  {expandedServices[serviceName] && (
+                    <div className="service-entries">
+                      {filteredGroups[serviceName].map(entry => (
+                        <div key={entry._id} className="account-entry">
+                          <div 
+                            className="account-name" 
+                            onClick={() => handleSelectEntry(entry)}
+                          >
+                            {getAccountName(entry)}
+                          </div>
+                          <button
+                            className="delete-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(entry._id);
+                            }}
+                            title="Удалить"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -429,6 +485,86 @@ export default function SavedPasswords() {
           </div>
         )}
       </div>
+      
+      <style jsx>{`
+        /* Стили для иерархического отображения паролей */
+        .service-group {
+          margin-bottom: 16px;
+          border-radius: 8px;
+          overflow: hidden;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          background: #fff;
+        }
+        
+        .service-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 12px 16px;
+          background-color: #f5f5f5;
+          cursor: pointer;
+          transition: background-color 0.2s;
+        }
+        
+        .service-header:hover {
+          background-color: #e8e8e8;
+        }
+        
+        .service-name {
+          font-weight: 600;
+          font-size: 16px;
+        }
+        
+        .service-expand-icon {
+          font-size: 14px;
+          color: #666;
+        }
+        
+        .service-entries {
+          padding: 8px 0;
+        }
+        
+        .account-entry {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 8px 16px 8px 32px;
+          border-bottom: 1px solid #f0f0f0;
+          transition: background-color 0.2s;
+        }
+        
+        .account-entry:last-child {
+          border-bottom: none;
+        }
+        
+        .account-entry:hover {
+          background-color: #f9f9f9;
+        }
+        
+        .account-name {
+          cursor: pointer;
+          flex-grow: 1;
+        }
+        
+        .delete-btn {
+          background: none;
+          border: none;
+          color: #ff5757;
+          font-size: 18px;
+          cursor: pointer;
+          padding: 4px 8px;
+          margin-left: 8px;
+          border-radius: 50%;
+          line-height: 1;
+          transition: background-color 0.2s;
+        }
+        
+        .delete-btn:hover {
+          background-color: #ffe5e5;
+        }
+        
+        /* Стили для модальных окон и других элементов интерфейса остаются без изменений */
+      `}</style>
     </>
   );
 }
