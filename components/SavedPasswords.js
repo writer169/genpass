@@ -15,6 +15,7 @@ export default function SavedPasswords() {
   const [showGeneratedPasswordModal, setShowGeneratedPasswordModal] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState("");
   const [expandedServices, setExpandedServices] = useState({});
+  const [isCopied, setIsCopied] = useState(false); // Добавлено состояние для отслеживания копирования
   const router = useRouter();
 
   useEffect(() => {
@@ -320,7 +321,7 @@ export default function SavedPasswords() {
   const closeGeneratedPasswordModal = () => {
     setShowGeneratedPasswordModal(false);
     setGeneratedPassword("");
-    // Сохраняем selectedEntry на случай, если пользователь захочет повторно сгенерировать или отредактировать
+    setIsCopied(false); // Сбрасываем состояние копирования
   };
 
   if (loading) return <div className="container"><p>Загрузка сохраненных паролей...</p></div>;
@@ -469,16 +470,32 @@ export default function SavedPasswords() {
                   className="password-result"
                 />
                 <button
-                  className="copy-btn icon-btn"
-                  onClick={() => {
-                    navigator.clipboard.writeText(generatedPassword);
-                    alert("Пароль скопирован в буфер обмена");
+                  className={`copy-btn icon-btn ${isCopied ? 'copied' : ''}`}
+                  onClick={async () => {
+                    try {
+                      if (!generatedPassword) {
+                        console.error("Ошибка: пароль не сгенерирован");
+                        return;
+                      }
+                      await navigator.clipboard.writeText(generatedPassword);
+                      setIsCopied(true);
+                      setTimeout(() => setIsCopied(false), 2000); // Возвращаем исходную иконку через 2 секунды
+                    } catch (err) {
+                      console.error("Ошибка копирования в буфер обмена:", err);
+                      // Можно добавить визуальное уведомление об ошибке, если нужно
+                    }
                   }}
-                  title="Копировать пароль"
+                  title={isCopied ? "Скопировано!" : "Копировать пароль"}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1Zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2Zm0 16H8V7h11v14Z"/>
-                  </svg>
+                  {isCopied ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                      <path d="M9 16.2l-3.5-3.5 1.4-1.4L9 13.4l7.1-7.1 1.4 1.4L9 16.2z" />
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                      <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1Zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2Zm0 16H8V7h11v14Z" />
+                    </svg>
+                  )}
                 </button>
               </div>
             </div>
@@ -563,7 +580,15 @@ export default function SavedPasswords() {
           background-color: #ffe5e5;
         }
         
-        /* Стили для модальных окон и других элементов интерфейса остаются без изменений */
+        /* Стили для кнопки копирования */
+        .copy-btn {
+          transition: background-color 0.2s, color 0.2s;
+        }
+        .copy-btn.copied {
+          background-color: #e6f4ea; /* Светло-зеленый фон для подтверждения */
+        }
+        
+        /* Остальные стили остаются без изменений */
       `}</style>
     </>
   );
